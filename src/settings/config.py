@@ -1,4 +1,5 @@
-from pydantic import BaseSettings, Field
+from pydantic_settings import BaseSettings
+from pydantic import Field
 
 class Settings(BaseSettings):
     # Github Actions / Docker Hub
@@ -20,6 +21,8 @@ class Settings(BaseSettings):
 
     # OpenAI
     openai_api_key: str = Field(..., env="OPENAI_API_KEY")
+
+    knowledge_base_path: str = Field("knowledge_base", env="KNOWLEDGE_BASE_PATH")
 
     class Config:
         env_file = ".env"
