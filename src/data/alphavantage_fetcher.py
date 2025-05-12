@@ -2,16 +2,16 @@ import os
 from alpha_vantage.timeseries import TimeSeries
 from datetime import datetime
 from typing import List, Dict, Any
-from .fetchers_base import DataFetcher
+from .fetchers_base import DataFetcher, rate_limiter, alpha_vantage_limiter, alpha_vantage_rate
 from .models import StockData
-from .fetchers_base import alpha_vantage_limiter
+
 
 class AlphaVantageFetcher(DataFetcher):
     def __init__(self, api_key: str):
         super().__init__()
         self.ts = TimeSeries(key=api_key, output_format='json')
 
-    @alpha_vantage_limiter
+    @rate_limiter(alpha_vantage_limiter, alpha_vantage_rate)
     def fetch_data(self, symbol: str, interval: str = 'daily') -> List[Dict[str, Any]]:
         raw, _ = self.ts.get_daily(symbol=symbol, outputsize='full')
         processed = []

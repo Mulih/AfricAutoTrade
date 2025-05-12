@@ -1,3 +1,4 @@
+from functools import wraps
 from limits import RateLimitItemPerMinute, RateLimitItemPerSecond
 from limits.strategies import MovingWindowRateLimiter
 from limits.storage import MemoryStorage
@@ -11,9 +12,27 @@ logger = logging.getLogger(__name__)
 alpha_vantage_rate = RateLimitItemPerMinute(5)
 binance_rate       = RateLimitItemPerSecond(10)
 
+# Initialize storage
+storage = MemoryStorage()
+
 # Rate limiters
-alpha_vantage_limiter = MovingWindowRateLimiter(alpha_vantage_rate, storage=MemoryStorage())
-binance_limiter       = MovingWindowRateLimiter(binance_rate, storage=MemoryStorage())
+alpha_vantage_limiter = MovingWindowRateLimiter(storage)
+binance_limiter = MovingWindowRateLimiter(storage)
+
+# Use the rate limiters wiith defined rates
+alpha_vantage_limiter.hit(alpha_vantage_rate)
+binance_limiter.hit(binance_rate)
+
+# Custom rate-limiting decorator
+def rate_limiter(limiter, rate):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if not limiter.hit(rate):
+                raise Exception("Rate limit exceeded")
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 class DataFetcher:
     def __init__(self):

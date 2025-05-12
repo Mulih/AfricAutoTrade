@@ -1,4 +1,5 @@
 langchain
+langchain-community
 alpha_vantage
 python-binance
 psycopg2-binary

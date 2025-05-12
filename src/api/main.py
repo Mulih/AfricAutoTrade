@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, BackgroundTasks
+import logging
 from src.data.alphavantage_fetcher import AlphaVantageFetcher
 from src.data.binance_fetcher import BinanceFetcher
 from src.data.models import StockData, CryptoData
@@ -12,10 +13,15 @@ from src.settings.config import settings
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
 app = FastAPI()
 
 # Initialize DB
 Base.metadata.create_all(bind=engine)
+
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to AfricAutoTrade API!"}
 
 @app.post("/fetch/stock/{symbol}", response_model=StockDataSchema)
 def fetch_stock(symbol: str):
@@ -35,22 +41,29 @@ def fetch_stock(symbol: str):
     finally:
         session.close()
 
-@app.post("/fetch/crypto/{symbol}", response_model=CryptoDataSchema)
-def fetch_crypto(symbol: str):
+@app.post("/fetch/crypto/{symbol}")
+def fetch_crypto(symbol: str, background_tasks: BackgroundTasks):
+    """Enqueue crypto ingestion and return the latest record"""
     fetcher = BinanceFetcher(settings.binance_api_key, settings.binance_api_secret)
-    records = fetcher.fetch_historical_data(symbol)
-    if not records:
-        raise HTTPException(status_code=404, detail="No crypto data found")
-    fetcher.store_data(records, CryptoData)
-    # Read the most recent record from DB
+    background_tasks.add_task(__ingest_crypto, fetcher, symbol)
+
+    # Fetch the most recent record from the database
     session = SessionLocal()
     try:
         latest = session.query(CryptoData).filter_by(symbol=symbol).order_by(CryptoData.timestamp.desc()).first()
         if not latest:
-            raise HTTPException(status_code=404, detail="Stored data not found in DB")
+            raise HTTPException(status_code=404, detail="Stored crypto data not found in DB")
         return latest
     finally:
         session.close()
+
+
+def __ingest_crypto(fetcher: BinanceFetcher, symbol: str):
+    records = fetcher.fetch_historical_data(symbol)
+    if not records:
+        logger.warning(f"No crypto data found during background ingest for {symbol}")
+        return
+    fetcher.store_data(records, CryptoData)
 
 @app.post("/qa", response_model=QAResponse)
 def answer_question(req: QARequest):
