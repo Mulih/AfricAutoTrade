@@ -3,7 +3,7 @@ from src.langchain_tools.vector_store import create_vector_store, load_vector_st
 from src.langchain_tools.retrieval_chain import get_qa_chain
 
 # Load docs from local path
-docs = load_documents_from_folder("data/docs")
+docs = load_documents_from_folder("knowledge_base")
 
 # Create or load FAISS index
 try:
