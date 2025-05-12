@@ -6,7 +6,11 @@ from src.models.schemas import StockDataSchema, CryptoDataSchema, QARequest, QAR
 from src.models.db import SessionLocal, engine, Base
 from src.langchain_tools.vector_store import load_vector_store, create_vector_store
 from src.langchain_tools.retrieval_chain import get_qa_chain
+from dotenv import load_dotenv
 from src.settings.config import settings
+
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -20,7 +24,16 @@ def fetch_stock(symbol: str):
     if not records:
         raise HTTPException(status_code=404, detail="No stock data found")
     fetcher.store_data(records, StockData)
-    return records[-1]
+
+    session = SessionLocal()
+    try:
+        # Fetch the most recent record from DB
+        latest = session.query(StockData).filter_by(symbol=symbol).order_by(StockData.timestamp.desc()).first()
+        if not latest:
+            raise HTTPException(status_code=404, detail="Stored data not found in DB")
+        return latest
+    finally:
+        session.close()
 
 @app.post("/fetch/crypto/{symbol}", response_model=CryptoDataSchema)
 def fetch_crypto(symbol: str):
@@ -29,7 +42,15 @@ def fetch_crypto(symbol: str):
     if not records:
         raise HTTPException(status_code=404, detail="No crypto data found")
     fetcher.store_data(records, CryptoData)
-    return records[-1]
+    # Read the most recent record from DB
+    session = SessionLocal()
+    try:
+        latest = session.query(CryptoData).filter_by(symbol=symbol).order_by(CryptoData.timestamp.desc()).first()
+        if not latest:
+            raise HTTPException(status_code=404, detail="Stored data not found in DB")
+        return latest
+    finally:
+        session.close()
 
 @app.post("/qa", response_model=QAResponse)
 def answer_question(req: QARequest):

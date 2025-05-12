@@ -12,7 +12,7 @@ alpha_vantage_rate = RateLimitItemPerMinute(5)
 binance_rate       = RateLimitItemPerSecond(10)
 
 # Rate limiters
-alpha_vantage_limiter = MovingWindowRateLimiter(alpha_vantage_rate, torage=MemoryStorage())
+alpha_vantage_limiter = MovingWindowRateLimiter(alpha_vantage_rate, storage=MemoryStorage())
 binance_limiter       = MovingWindowRateLimiter(binance_rate, storage=MemoryStorage())
 
 class DataFetcher:
