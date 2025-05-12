@@ -5,7 +5,7 @@ from src.data.binance_fetcher import BinanceFetcher
 from src.data.models import StockData, CryptoData
 from src.models.schemas import StockDataSchema, CryptoDataSchema, QARequest, QAResponse
 from src.models.db import SessionLocal, engine, Base
-from src.langchain_tools.vector_store import load_vector_store, create_vector_store
+from src.langchain_tools.vector_store import load_or_rebuild_vector_store, create_vector_store
 from src.langchain_tools.retrieval_chain import get_qa_chain
 from dotenv import load_dotenv
 from src.settings.config import settings
@@ -69,13 +69,7 @@ def __ingest_crypto(fetcher: BinanceFetcher, symbol: str):
 def answer_question(req: QARequest):
     try:
         # Load or build vector store
-        try:
-            vs = load_vector_store()
-        except Exception as e:
-            logger.warning(f"Vectore store not found. Rebuilding: {e}")
-            from src.langchain_tools.document_loader import load_documents_from_folder
-            docs = load_documents_from_folder(settings.knowledge_base_path)
-            vs = create_vector_store(docs)
+        vs = load_or_rebuild_vector_store()
 
         # Get QA chain and processes the question
         qa_chain = get_qa_chain(vs)
