@@ -1,0 +1,16 @@
+langchain
+alpha_vantage
+python-binance
+psycopg2-binary
+SQLAlchemy
+openai
+loguru
+pytest
+pydantic
+asyncio
+GitPython
+docker
+fastapi
+uvicorn
+tenacity
+limits
