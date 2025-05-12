@@ -1,4 +1,4 @@
-from langchain.document_loaders import TextLoader
+from langchain_community.document_loaders import TextLoader
 
 def load_documents_from_folder(folder_path: str):
     """

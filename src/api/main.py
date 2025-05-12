@@ -71,14 +71,18 @@ def answer_question(req: QARequest):
         # Load or build vector store
         try:
             vs = load_vector_store()
-        except:
+        except Exception as e:
+            logger.warning(f"Vectore store not found. Rebuilding: {e}")
             from src.langchain_tools.document_loader import load_documents_from_folder
             docs = load_documents_from_folder(settings.knowledge_base_path)
             vs = create_vector_store(docs)
+
+        # Get QA chain and processes the question
         qa_chain = get_qa_chain(vs)
         result = qa_chain(req.question)
         return QAResponse(answer=result["result"], source_documents=[doc.page_content for doc in result["source_documents"]])
     except Exception as e:
+        logging.error(f"Error in answer_question: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
