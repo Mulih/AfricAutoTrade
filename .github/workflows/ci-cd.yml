@@ -1,6 +1,8 @@
 name: CI/CD Pipeline
 
 on:
+  schedule:
+    - cron: '0 2 * * *' # daily at 02:00 UTC
   push:
     branches: [ develop, main ]
 

@@ -71,7 +71,7 @@ def answer_question(req: QARequest):
         # Load or build vector store
         vs = load_or_rebuild_vector_store()
 
-        # Get QA chain and processes the question
+        # Get QA chain and processes the question.
         qa_chain = get_qa_chain(vs)
         result = qa_chain(req.question)
         return QAResponse(answer=result["result"], source_documents=[doc.page_content for doc in result["source_documents"]])

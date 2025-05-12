@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     # OpenAI
     openai_api_key: str = Field(..., env="OPENAI_API_KEY")
 
+    newsapi_key: str = Field(..., env="NEWSAPI_KEY")
+
     knowledge_base_path: str = Field("knowledge_base", env="KNOWLEDGE_BASE_PATH")
 
     class Config:
