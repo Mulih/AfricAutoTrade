@@ -60,7 +60,6 @@ jobs:
         run: |
           docker push AfricAutoTrade_bot: latest
 
-
   deploy:
     needs: build
     runs-on: ubuntu-latest
