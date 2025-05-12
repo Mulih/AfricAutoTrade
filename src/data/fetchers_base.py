@@ -1,8 +1,19 @@
+from limits import RateLimitItemPerMinute, RateLimitItemPerSecond
+from limits.strategies import MovingWindowRateLimiter
+from limits.storage import MemoryStorage
 from tenacity import retry, stop_after_attempt, wait_fixed
 from src.models.db import SessionLocal
 import logging
 
 logger = logging.getLogger(__name__)
+
+# Define rate limits
+alpha_vantage_rate = RateLimitItemPerMinute(5)
+binance_rate       = RateLimitItemPerSecond(10)
+
+# Rate limiters
+alpha_vantage_limiter = MovingWindowRateLimiter(alpha_vantage_rate, torage=MemoryStorage())
+binance_limiter       = MovingWindowRateLimiter(binance_rate, storage=MemoryStorage())
 
 class DataFetcher:
     def __init__(self):
@@ -31,17 +42,3 @@ class DataFetcher:
             self.session.rollback()
             logger.error(f"Error storing data: {e}")
             raise
-
-
-from limits import RateLimitItemPerMinute, RateLimitItemPerSecond
-from limits.strategies import MovingWindowRateLimiter
-from limits.storage import MemoryStorage
-
-
-# DEfine rate limits
-alpha_vantage_rate = RateLimitItemPerMinute(5)
-binance_rate       = RateLimitItemPerSecond(10)
-
-# Rate limiters
-alpha_vantage_limiter = MovingWindowRateLimiter(alpha_vantage_rate, torage=MemoryStorage())
-binance_limiter       = MovingWindowRateLimiter(binance_rate, storage=MemoryStorage())
