@@ -1,5 +1,5 @@
 from langchain.chains import RetrievalQA
-from langchain.llms import OpenAI
+from langchain_openai import OpenAI
 from .vector_store import load_vector_store
 from src.settings.config import settings
 

@@ -9,7 +9,7 @@ def fetch_latest_news(query: str = "financial markets") -> list[Document]:
     """
     Fetch articles from the last 24h and convert to LangChain Documents.
     """
-    since = (datetime.utcnow() - timedelta(days=1)).isoformat()
+    since = (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%S")
     resp = newsapi.get_everything(
         q=query,
         from_param=since,
@@ -18,8 +18,7 @@ def fetch_latest_news(query: str = "financial markets") -> list[Document]:
     )
     docs = []
     for art in resp.get("articles", []):
-        content = f"{art['title']} \
-{art.get('description','')}"
+        content = f"{art['title']} {art.get('description','')}"
         metadata = {
             "source": art['source']['name'],
             "publishedAt": art['publishedAt'],
