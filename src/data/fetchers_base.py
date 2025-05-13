@@ -43,7 +43,7 @@ class DataFetcher:
 
     @retry(stop=stop_after_attempt(5), wait=wait_fixed(10))
     def fetch_data(self, *args, **kwargs):
-        raise NotImplementedError
+        raise NotImplementedError("Subclasses must implement fetch_data()")
 
     def store_data(self, data_list, model):
         try:

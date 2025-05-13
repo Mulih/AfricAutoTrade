@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 # Rate limiting for orders
 order_limits    = parse_many("10 orders/second, 100 orders/minute")
 order_strategy  = strategies.MovingWindow
-order_limit     = RateLimitDecorator(order_limits, strategy=order_strategy)
+order_limiter     = RateLimitDecorator(order_limits, strategy=order_strategy)
 
 class OrderParams(BaseModel):
     symbol:         str
