@@ -22,12 +22,19 @@ class Settings(BaseSettings):
     # OpenAI
     openai_api_key: str = Field(..., env="OPENAI_API_KEY")
 
+    # newsapi
     newsapi_key: str = Field(..., env="NEWSAPI_KEY")
 
+    # Telegram
+    tg_token: str = Field(..., env="TG_TOKEN")
+    tg_chat_id: str = Field(..., env="TG_CHAT_ID")
+
+    # knowledge base
     knowledge_base_path: str = Field("knowledge_base", env="KNOWLEDGE_BASE_PATH")
 
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "allow"
 
 settings = Settings()
