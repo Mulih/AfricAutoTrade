@@ -9,12 +9,14 @@ from src.langchain_tools.vector_store import load_or_rebuild_vector_store, creat
 from src.langchain_tools.retrieval_chain import get_qa_chain
 from dotenv import load_dotenv
 from src.settings.config import settings
+from src.api.auto_trade import router as auto_trade_router
 
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 app = FastAPI()
+app.include_router(auto_trade_router)
 
 # Initialize DB
 Base.metadata.create_all(bind=engine)

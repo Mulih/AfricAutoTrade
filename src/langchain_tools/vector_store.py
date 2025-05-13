@@ -1,6 +1,6 @@
 import logging
-from langchain.vectorstores import FAISS
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain_community.embeddings import OpenAIEmbeddings
 from src.settings.config import settings
 from src.langchain_tools.document_loader import load_documents_from_folder
 
