@@ -58,7 +58,7 @@ jobs:
       - name: Log in to Docker Hub
         if: github.ref == 'refs/heads/main'
         run: |
-          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Push Docker image
         if: github.ref == 'refs/heads/main'
@@ -71,11 +71,12 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Deploy to AWS ECS
-        uses: aws-actions/amazozn-ecs-deploy-task-definition@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: path/to/task-def.json
           service: your-ecs-service
           cluster: your-ecs-cluster
-          aws-access-key-id: ${{ secrets.AWS_SECRET_KEY_ID }}
+        env:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
