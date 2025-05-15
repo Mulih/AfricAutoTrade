@@ -68,3 +68,20 @@ class RSIStrategy(StrategyBase):
             else:
                 signals.append('HOLD')
         return signals
+
+
+from typing import Any
+
+def get_Strategy(name: str, **kwargs: Any) -> StrategyBase:
+    """
+    Factory to get a strategy by name.
+    :param name: Name of the strategy ("sma" or "rsi")
+    :param kwargs: Parameters for the strategy.
+    :return: instance of a StrategyBase subclass
+    """
+    if name == "sma":
+        return SimpleMovingAverageStrategy(**kwargs)
+    elif name == "rsi":
+        return RSIStrategy(**kwargs)
+    else:
+        raise ValueError(f"Unknown strategy: {name}")
