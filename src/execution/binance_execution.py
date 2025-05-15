@@ -81,3 +81,23 @@ class BinanceExecutionClient:
             logger.error(f"Order execution failed: {e}")
             self.circuit_breaker.record_failure()
             raise ExecutionError(f"Order execution failed: {e}")
+
+    def get_order_Status(self, order_id: str) -> Dict[str, Any]:
+        """
+        Get the status of an order.
+        :param order_id: Order ID.
+        :return: Order status.
+        """
+        # Placeholder for actual Binance API call
+        logger.info(f"Fetching status for order {order_id}")
+        return {"order_id": order_id, "status": "filled"}
+
+    def cancel_order(self, order_id: str) -> Dict[str, Any]:
+        """
+        Cancel an order.
+        :param order_id: Order ID.
+        :return: Cancel result.
+        """
+        # Placeholder for actual Binance API call
+        logger.info(f"Cancelling order {order_id}")
+        return {"order_id": order_id, "status": "cancelled"}
