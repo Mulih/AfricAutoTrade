@@ -5,6 +5,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+"""
+Database connection and session management.
+"""
+
 try:
     # Create a new SQLAlchemy engine instance
     engine = create_engine(settings.database_url, echo=True, future=True)
