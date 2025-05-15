@@ -1,19 +1,38 @@
 import pandas as pd
 
-def moving_average(series: pd.Series, window: int) -> pd.Series:
-    """Simple moving average"""
-    return series.rolling(window=window).mean()
+def moving_average(series: pd.Series[float], window: int) -> pd.Series[float]:
+    """
+    Calculate the simple moving average.
 
-def exponential_moving_average(series: pd.Series, span: int) -> pd.Series:
-    """Exponential moving average"""
-    return series.ewm(span=span, adjust=False).mean()
+    :param series: Price series.
+    :param window: Window size.
+    :return: Moving average series.
+    """
+    return series.rolling(window=window, min_periods=1).mean()
 
-def rsi(series: pd.Series, window: int = 14) -> pd.Series:
-    """Relative Strength Index"""
+def rsi(series: pd.Series[float], window: int = 14) -> pd.Series[float]:
+    """
+    Calculate the Relative Strength Index (RSI).
+
+    :param series: Price series.
+    :param window: RSI window.
+    :return: RSI values as a pandas Series.
+    """
     delta = series.diff()
     gain = delta.clip(lower=0)
     loss = delta.clip(upper=0)
-    avg_gain = gain.rolling(window=window).mean()
-    avg_loss = loss.rolling(window=window).mean()
-    rs = avg_gain / avg_loss
-    return 100 - (100 / (1 + rs))
+    avg_gain = gain.rolling(window=window, min_periods=1).mean()
+    avg_loss = loss.rolling(window=window, min_periods=1).mean()
+    rs = avg_gain / (avg_loss +1e-9)
+    rsi = 100 - (100 / (1 + rs))
+    return rsi
+
+def exponential_moving_average(series: pd.Series[float], window: int) -> pd.Series[float]:
+    """
+    Calculate the exponential moving average.
+
+    :param series: Price series.
+    :param window: Window size.
+    :return: EMA series.
+    """
+    return series.ewm(span=window, adjust=False).mean()
