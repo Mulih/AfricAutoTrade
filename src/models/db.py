@@ -4,7 +4,6 @@ from src.settings.config import settings
 
 
 # Create a new SQLAlchemy engine instance
-
 engine = create_engine(settings.database_url, echo=True, future=True)
 # Create a configured "Session" class
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
