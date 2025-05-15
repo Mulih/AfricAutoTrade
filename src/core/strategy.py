@@ -8,7 +8,7 @@ class StrategyBase:
     """
     Abstract base class for trading strategies.
     """
-    def generate_signals(self, prices: pd.Series[str]) -> List[str]:
+    def generate_signals(self, prices: pd.Series[float | int]) -> List[str]:
         """
         Generate trading signals for a price series.
         :param prices: Series of prices.
@@ -24,7 +24,7 @@ class SimpleMovingAverageStrategy(StrategyBase):
         self.short_window   = short_window
         self.long_window    = long_window
 
-    def generate_signals(self, prices: pd.Series[str]) -> List[str]:
+    def generate_signals(self, prices: pd.Series[float | int]) -> List[str]:
         if len(prices) < self.long_window:
             logger.warning("Not enough data for long window.")
             return ['HOLD'] * len(prices)
