@@ -1,4 +1,5 @@
 import logging
+from binance.client import Client # type: ignore[reportMissingTypeStubs]
 
 logger = logging.getLogger(__name__)
 
@@ -37,4 +38,5 @@ class BinanceExecutionClient:
         self.api_key = api_key
         self.api_secret = api_secret
         self.testnet = testnet
-        self.circuit_breaker = CircuitBreaker()
+        # Binance client initialization
+        self.client = Client(api_key, api_secret, testnet=testnet)
