@@ -1,36 +1,43 @@
+import logging
 from typing import List
 import pandas as pd
-from src.core.indicators import moving_average, rsi
 
-def trend_following_strategy(prices: pd.Series) -> List[str]:
-    """
-    Simple trend-following: buy when price > MA(50). sell when price < MA(50).
-    Returns a list of 'BUY', 'SELL', or 'HOLD' signals.
-    """
-    signals = []
-    ma50 = moving_average(prices, window=50)
-    for price, ma in zip(prices, ma50):
-        if pd.isna(ma):
-            signals.append('HOLD')
-        elif price > ma:
-            signals.append('BUY')
-        elif price < ma:
-            signals.append('SELL')
-        else:
-            signals.append('HOLD')
-    return signals
+logger = logging.getLogger(__name__)
 
-def rsi_strategy(prices: pd.Series) -> List[str]:
+class StrategyBase:
     """
-    RSI-based strategy: buy when RSI < 30 (oversold). sell when RSI > 70 (overbought).
+    Abstract base class for trading strategies.
     """
-    signals = []
-    rsi_vals = rsi(prices)
-    for val in rsi_vals:
-        if pd.isna(val):
-            signals.append('HOLD')
-        elif val < 30:
-            signals.append('BUY')
-        else:
-            signals.append('HOLD')
-    return signals
+    def generate_signals(self, prices: pd.Series[str]) -> List[str]:
+        """
+        Generate trading signals for a price series.
+        :param prices: Series of prices.
+        :return: List of signals ('BUY', 'SELL', 'HOLD').
+        """
+        raise NotImplementedError("Must implement generate_signals method.")
+
+class SimpleMovingAverageStrategy(StrategyBase):
+    """
+    Simple moving average crossover strategy.
+    """
+    def __init__(self, short_window: int = 10, long_window: int = 30):
+        self.short_window   = short_window
+        self.long_window    = long_window
+
+    def generate_signals(self, prices: pd.Series[str]) -> List[str]:
+        if len(prices) < self.long_window:
+            logger.warning("Not enough data for long window.")
+            return ['HOLD'] * len(prices)
+        short_ma = prices.rolling(window=self.short_window).mean()
+        long_ma = prices.rolling(window=self.long_window).mean()
+        signals: List[str] = []
+        for i in range(len(prices)):
+            if i < self.long_window:
+                signals.append('HOLD')
+            elif short_ma.iloc[i] > long_ma.iloc[i]:
+                signals.append('BUY')
+            elif short_ma.iloc[i] < long_ma.iloc[i]:
+                signals.append('SELL')
+            else:
+                signals.append('HOLD')
+        return signals
