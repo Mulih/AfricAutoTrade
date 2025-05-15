@@ -1,7 +1,15 @@
 from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic.v1 import Field, ValidationError
+from dotenv import load_dotenv
+
+# Load environment variables from .env file before creating Settings
+load_dotenv()
 
 class Settings(BaseSettings):
+    """
+    Application configuration loaded from environment variables.
+    """
+
     # Github Actions / Docker Hub
     dockerhub_username: str = Field(..., env="DOCKERHUB_USERNAME")
     dockerhub_token: str = Field(..., env="DOCKERHUB_TOKEN")
@@ -37,4 +45,7 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
         extra = "allow"
 
-settings = Settings()
+try:
+    settings = Settings()
+except ValidationError as e:
+    raise RuntimeError(f"Configuration validation error: {e}")
