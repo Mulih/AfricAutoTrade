@@ -1,1 +1,8 @@
-.venv/\n__pycache__/\n*.pyc\n.DS_Store\n.env\n.aws/\nterraform/.terraform/\nterraform/*.tfstate*\n
+.venv
+__pycache__
+*.pyc
+.DS_Store
+.env
+.aws
+terraform/.terraform
+terraform/*.tfstate*

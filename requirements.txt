@@ -1,0 +1,9 @@
+# requirements.txt
+pandas # for data manipulation
+numpy # For numerical operations
+requests # For API calls (e.g., market data)
+scikit-learn
+TensorFlow
+python-dotenv
+boto3 # AWS SDK for python (if interacting directly with AWS services)
+pytest # For testing
