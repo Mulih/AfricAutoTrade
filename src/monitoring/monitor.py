@@ -34,3 +34,18 @@ class TradingMonitor:
             logger.addHandler(fh)
             logger.addHandler(ch)
         return logger
+
+    def log_event(self, level: str, message: str, trade_details=None):
+        """Logs an event with specified level."""
+        if trade_details:
+            message += f" Details: {trade_details}"
+        if level == 'info':
+            self.logger.info(message)
+        elif level == 'warning':
+            self.logger.warning(message)
+        elif level == 'error':
+            self.logger.error(message)
+        elif level == 'critical':
+            self.logger.critical(message)
+        else:
+            self.logger.debug(message) # Default to debug for unknown levels
