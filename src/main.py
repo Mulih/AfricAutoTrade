@@ -47,7 +47,7 @@ def run_trading_bot():
 
             # 2. Data Ingestion
             current_market_data = get_realtime_data(symbol='BTCUSD')
-            if not current_market_Data or current_market_data.get('price') is None:
+            if not current_market_data or current_market_data.get('price') is None:
                 monitor.log_event('error', "Failed to get current market. Skipping cycle.")
                 time.sleep(60)
                 continue
@@ -61,5 +61,52 @@ def run_trading_bot():
             # 3. AI Prediction
             ai_prediction = ai_model.predict(ai_features)
             monitor.log_event('info', f"AI predicted: {ai_prediction} for market data: {current_market_data}")
+
+            # 4. Trading Strategy Decision
+            decision = strategy.make_decision(current_market_data, ai_prediction)
+            monitor.log_event('info', f"Strategy decision: {decision}")
+
+            # 5. Trade Execution
+            if decision == 'buy':
+                quantity_to_buy = 0.0001 # example
+                trade_result = executor.execute_trade('BTCUSD', 'buy', quantity_to_buy)
+                monitor.log_event('info', "Buy order executed.", trade_details=trade_result)
+                monitor.update_metrics(trade_result=trade_result)
+            elif decision == 'sell':
+                quantity_to_sell = 0.0001 # example
+                trade_result = executor.execute_trade('BTCUSD', 'sell', quantity_to_sell)
+                monitor.log_event('info', "Sell order executed.", trade_details=trade_result)
+                monitor.update_metrics(trade_result=trade_result)
+            else:
+                monitor.log_event('info', "Holding. No trade excecuted this cycle.")
+
+            # 6. Monitoring and Metrics Update
+            current_balance = executor.get_account_balance().get('cash')
+            monitor.update_metrics(current_balance=current_balance)
+
+            # Simulate historical trades for performance evaulation (optional, done in backtesting)
+            # historical_trades_mock = [{'type': 'buy', 'entry_price': 6500, 'exit_price': 65100, 'quantity': 0.001, 'profit_loss': 0.1}]
+            # strategy.evaluate_performance(historical_trades_mock)
+
+            monitor.log_event('info', f"Current Bot Metrics: {monitor.get_current_metrics()}")
+
+            # 7. Pause before next cycle
+            sleep_time = int(os.getenv('TRADING_CYCLE_INTERVAL_SECONDS', 300)) # Default to 5 minutes
+            monitor.log_event('info', f"Sleeping for {sleep_time} seconds...")
+            time.sleep(sleep_time)
+
     except KeyboardInterrupt:
         monitor.log_event('info', "Bot stopped manually (KeyboardInterrupt).")
+    except Exception as e:
+        monitor.log_event('critical', f"An unexpected error occured: {e}", exc_info=True)
+        monitor.send_alert(f"Critical error in trading bot: {e}")
+    finally:
+        monitor.log_event('info', "Trading bot finished.")
+
+
+if __name__ == "__main__":
+    # TRADING_CYCLE_INTERVAL_SECONDS=60
+    # EXECUTION_MODE=paper
+    # BROKER_API_KEY=dummy_key
+    # BROKER_API_SECRET=dummy_secret
+    run_trading_bot()
