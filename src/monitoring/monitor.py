@@ -66,3 +66,10 @@ class TradingMonitor:
                 self.performance_metrics['current_balance'] = current_balance
 
             self.log_event('info', f"Metrics Updated: {self.performance_metrics}")
+
+
+    def send_alert(self, message):
+        """Sends an alert (e.g., via email, SMS, or Slack)."""
+        self.log_event('warning', f"ALERT: {message}")
+        # Integrate notification service AWS SNS
+        print(f"--- ALERT SENT: {message} ---")
