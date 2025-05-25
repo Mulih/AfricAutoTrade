@@ -1,12 +1,13 @@
 import os
+import time
 import pandas as pd
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 
 
 try:
     from binance.client import Client as BinanceClient
-    from binance.enums import *
+    from binance.enums import SIDE_BUY, SIDE_SELL, ORDER_TYPE_LIMIT, TIME_IN_FORCE_GTC, ORDER_TYPE_MARKET
     from binance.exceptions import BinanceAPIException, BinanceRequestException
 except ImportError:
     print("Warning: 'python-binance' library not found. Live trading functionality will be simulated.")
@@ -48,7 +49,7 @@ class TradeExecutor:
         self.paper_holdings: Dict[str, float] = {}
 
 
-    def simulate_trade(self, symbol: str, order_type: str, quantity: float, price: float) -> Dict[str, Any]:
+    def _simulate_trade(self, symbol: str, order_type: str, quantity: float, price: float) -> Dict[str, Any]:
         """
         Simulates a trade for paper trading mode.
         Calculates impact on paper cash and holdings.
@@ -91,47 +92,74 @@ class TradeExecutor:
         }
 
 
-    def execute_trade(self, symbol: str, order_type: str, quantity: float) -> Dict[str, Any]:
+    def execute_trade(self, symbol: str, order_type: str, quantity: float, price: Optional[float] = None) -> Dict[str, Any]:
         """
-        Executes a trade order with the brokerage.
+        Executes a trade order with the brokeragec or simulates it.
         :param symbol: Trading pair (e.g., 'BTC/USD')
         :param order_type: 'buy' or 'sell'
         :param quantity: Amount to trade
+        :param price: Optional. The price at which to place a LIMIT order. If None, a MARKET order is attempted.
         :return: dict with trade details or success status
         """
         print(f"Attempting to execute {order_type} order for {quantity} of {symbol} in {self.mode} mode...")
 
         if self.mode == 'paper':
-            # Simulate trade execution for paper trading
-            print(f"[PAPER TRADE] Successfully simulated {order_type} {quantity} of {symbol}.")
-            return {
-                'status': 'success',
-                'order_id': f"sim_order_{os.urandom(4).hex()}",
-                'symbol': symbol,
-                'type': order_type,
-                'quantity': quantity,
-                'price': 65000.0 if order_type == 'buy' else 64950.0, # Mock price
-                'timestamp': pd.Timestamp.now().isoformat()
-            }
+            # For paper trading, A mock price is needed if not provided
+            mock_price = price if price is not None else (65000.0 if order_type == 'buy' else 64950.0)
+            return self._simulate_trade(symbol, order_type, quantity, mock_price)
         elif self.mode == 'live':
-            # call binance API here
-            # try:
-            #     order = self.broker_client.create_order(symbol, order_type, quantity)
-            #     print(f"LIVE TRADE: Order {order.id} placed for {symbol}")
-            #     return {'status': 'success', 'order_id': order.id, ...}
-            # except Exception as e:
-            #     print(f"LIVE TRADE ERROR: {e}")
-            #     return {'status': 'failed', 'error': str(e)}
-            print("LIVE TRADING IS NOT YET IMPLEMENTED. Running in paper mode.")
-            # fallback to paper mode simulation
-            original_mode = self.mode
-            self.mode = 'paper'
-            result = self.execute_trade(symbol, order_type, quantity)
-            self.mode = original_mode
-            return result
-        else:
-            print(f"Invalid mode: {self.mode}")
-            return {'status': 'failed', 'error': 'Invalid execution mode'}
+            if not self.broker_client:
+                print("ERROR: Live trading client not initialized. Falling back to paper mode.")
+                return self._simulate_trade(symbol, order_type, quantity, price or 65000.0)
+
+            try:
+                order_params = {
+                    'symbol': symbol,
+                    'side': SIDE_BUY if order_type == 'buy' else SIDE_SELL,
+                    'quantity': quantity
+                }
+
+                if price is not None:
+                    order_params['type'] = ORDER_TYPE_LIMIT
+                    order_params['price'] = f"{price:.2f}" # Binance API expects price as string
+                    order_params['timeInForce'] = TIME_IN_FORCE_GTC # Good Till Cancelled
+                    print(f"Placing LIVE LIMIT {order_type.upper()} order for {quantity} {symbol}...")
+                    order = self.broker_client.create_order(**order_params)
+                else:
+                    order_params['type'] = ORDER_TYPE_MARKET
+                    print(f"Placing LIVE MARKET {order_type.upper()} order for {quantity} {symbol}...")
+                    order = self.broker_client.create_order(**order_params)
+
+                print(f"LIVE TRADE: Order {order['orderId']} placed. Status: {order['status']}")
+                # Wait a bit and check order status for market orders to getfilled price
+                if order['type'] == 'MARKET' and order['status'] == 'NEW':
+                    # For market orders, sometimes the fill details are not immediate.
+                    # Will implement poll or use WebSockets. For now, using wait.
+                    time.sleep(2) # Gite it a moment to fill
+                    filled_order = self.broker_client.get_order(symbol=symbol, orderId=order['orderId'])
+                    filled_price = float(filled_order['fills'][0]['price']) if filled_order['fills'] else 0.0
+                    print(f"LIVE TRADE: MArket order {order['orderId']} filled at approx. {filled_price:.2f}")
+                    return {
+                        'status': 'success',
+                        'order_id': order['orderId'],
+                        'symbol': order['symbol'],
+                        'type': order_type,
+                        'quantity': float(order['executedQty']),
+                        'price': filled_price,
+                        'timestamp': pd.to_datetime(order['updateTime'], unit='ms').isoformat(),
+                        'raw_response': filled_order
+                    }
+                return {
+                    'status': 'success',
+                    'order_id': order['orderId'],
+                    'symbol': order['symbol'],
+                    'type': order_type,
+                    'quantity': float(order['origQty']),
+                    'price': float(order.get('price', '0.0')),
+                    'timestamp': pd.to_datetime(order['transactTime'], unit='ms').isoformat(),
+                    'raw_response': order
+                }
+
 
     def get_account_balance(self) -> Dict[str, Any]:
         """Fetches current account balance."""
