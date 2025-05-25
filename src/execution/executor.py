@@ -38,10 +38,15 @@ class TradeExecutor:
                     print(f"An unexpected error occurred Binance client initialization: {e}")
                     print("Falling back to paper trading mode.")
                     self.mode = 'paper'
-                else:
-                    print("Binance client not available. Live trading functionality cannot be used.")
-                    print("Falling back to paper trading mode.")
-                    self.mode = 'paper'
+            else:
+                print("Binance client not available. Live trading functionality cannot be used.")
+                print("Falling back to paper trading mode.")
+                self.mode = 'paper'
+
+        # Initialize paper trading account state
+        self.paper_cash = float(os.getenv('PAPER_STARTING_CASH', 100000.0))
+        self.paper_holdings: Dict[str, float] = {}
+
 
     def execute_trade(self, symbol: str, order_type: str, quantity: float) -> Dict[str, Any]:
         """
