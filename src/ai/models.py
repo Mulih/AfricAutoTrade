@@ -43,7 +43,7 @@ class AIModel:
             print(F"No model found at {path}. A new model will be used/trained.")
 
 
-if __main__ == "__main__":
+if __name__ == "__main__":
     # Example: Simple dummy data for demonstration
     # Features: price_change (e.g., % change), volume_change
     # Target: 'buy' (1) or 'sell' (0)
