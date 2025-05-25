@@ -1,9 +1,9 @@
 import logging
 import time
-from typing import Any
+from typing import Any, Optional, Dict
 
 class TradingMonitor:
-    def __init__(self, log_file='trading_bot.log'):
+    def __init__(self, log_file: str = 'trading_bot.log'):
         self.log_file = log_file
         self.logger = self._setup_logger()
         self.performance_metrics: dict[str, Any] = {
@@ -36,7 +36,7 @@ class TradingMonitor:
             logger.addHandler(ch)
         return logger
 
-    def log_event(self, level: str, message: str, trade_details=None):
+    def log_event(self, level: str, message: str, trade_details: Optional[Dict[str, Any]] =None):
         """Logs an event with specified level."""
         if trade_details:
             message += f" Details: {trade_details}"
@@ -51,7 +51,7 @@ class TradingMonitor:
         else:
             self.logger.debug(message) # Default to debug for unknown levels
 
-    def update_metrics(self, trade_result=None, current_balance=None):
+    def update_metrics(self, trade_result: Optional[Dict[str, Any]] = None, current_balance: Optional[float] = None):
         """Updates internal performance metrics."""
         if trade_result:
             self.performance_metrics['trades_executed'] += 1
@@ -68,7 +68,7 @@ class TradingMonitor:
             self.log_event('info', f"Metrics Updated: {self.performance_metrics}")
 
 
-    def send_alert(self, message):
+    def send_alert(self, message: str):
         """Sends an alert (e.g., via email, SMS, or Slack)."""
         self.log_event('warning', f"ALERT: {message}")
         # Integrate notification service AWS SNS

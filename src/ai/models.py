@@ -1,17 +1,17 @@
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
 import numpy as np
-import joblib # For saving/loading models
+import joblib # type: ignore
 
 class AIModel:
     def __init__(self):
         self.model = RandomForestClassifier(n_estimators=100, random_state=42)
         # Will replace with training pipeline or pre-trained model
 
-    def train(self, X_train, y_train):
+    def train(self, X_train: pd.DataFrame, y_train: pd.Series) -> None:
         """Trains the AI Model"""
         print("Training AI model...")
-        self.model.fit(X_train, y_train)
+        self.model.fit(X_train, y_train)  # type: ignore
         print("AI model training complete.")
 
     def predict(self, features):

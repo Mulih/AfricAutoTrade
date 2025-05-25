@@ -1,10 +1,10 @@
-from typing import Dict, Any
+from typing import Dict, Any, List
 class TradingStrategy:
-    def __init__(self, ai_model):
+    def __init__(self, ai_model: Any):
         self.ai_model = ai_model
         # place holder for other strategy parameters
 
-    def make_decision(self, market_data, ai_prediction):
+    def make_decision(self, market_data: Dict[str, Any], ai_prediction: int):
         """
         Makes a trading decision on current market data and AI prediction.
         :param maraket_data: dict of current market data (e.g., {'price': X, 'volume': Y})
@@ -29,7 +29,7 @@ class TradingStrategy:
             return 'hold'
 
 
-    def evaluate_performance(self, historical_trades):
+    def evaluate_performance(self, historical_trades: 'List[Dict[str, Any]]') -> Dict[str, float]:
         """
         Evaluates the strategy's performance based on historical trades.
         (Will be more complex in future)
@@ -61,11 +61,12 @@ if __name__ == "__main__":
     from src.ai.models import AIModel
 
     # Mock AI Model for testing strategy independently
-    class MockAIModel:
+    class MockAIModel(AIModel):
         # Simulate a prediction based on a 'dummy_indicator' in features
-        if 'dummy_indicator' in features and features['dummy_indicator'] > 0.5:
-            return 1 # Simulate buy signal
-        return 0 # simulate sell/hold signal
+        def predict(self, features: Dict[str, Any]):
+            if 'dummy_indicator' in features and features['dummy_indicator'] > 0.5:
+                return 1 # Simulate buy signal
+            return 0 # simulate sell/hold signal
 
     mock_ai = MockAIModel()
     strategy = TradingStrategy(ai_model=mock_ai)
@@ -93,7 +94,7 @@ if __name__ == "__main__":
 
     # Test performance evaluation (mock historical trades)
     print("\n--- Performance Evaluation Test ---")
-    historical_trades = [
+    historical_trades: List[Dict[str, Any]] = [
         {'type': 'buy', 'entry_price': 100, 'exit_price': 105, 'quantity': 1},
         {'type': 'sell', 'entry_price': 200, 'exit_price': 190, 'quantity': 0.5}, # Short sell
         {'type': 'buy', 'entry_price': 150, 'exit_price': 145, 'quantity': 2}, # Loss

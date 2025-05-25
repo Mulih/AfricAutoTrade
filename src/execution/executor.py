@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv() # Load environment variables from .env file
 
 class TradeExecutor:
-    def __init__(self, api_key, api_secret, mode='paper'):
+    def __init__(self, api_key: str, api_secret: str, mode: str = 'paper'):
         self.api_key = api_key
         self.api_secret = api_secret
         self.mode = mode # 'live' or 'paper'
@@ -17,7 +17,7 @@ class TradeExecutor:
         # Placeholder for binance API client
         # self.broker_client = binance.Client(api_key, api_secret)
 
-    def execute_trade(self, symbol: str, order_type: str, quantity: float) -> Dict[str]:
+    def execute_trade(self, symbol: str, order_type: str, quantity: float) -> Dict[str, Any]:
         """
         Executes a trade order with the brokerage.
         :param symbol: Trading pair (e.g., 'BTC/USD')
@@ -49,7 +49,12 @@ class TradeExecutor:
             #     print(f"LIVE TRADE ERROR: {e}")
             #     return {'status': 'failed', 'error': str(e)}
             print("LIVE TRADING IS NOT YET IMPLEMENTED. Running in paper mode.")
-            return self.execute_trade(symbol, order_type, quantity, mode='paper') # fallback
+            # fallback to paper mode simulation
+            original_mode = self.mode
+            self.mode = 'paper'
+            result = self.execute_trade(symbol, order_type, quantity)
+            self.mode = original_mode
+            return result
         else:
             print(f"Invalid mode: {self.mode}")
             return {'status': 'failed', 'error': 'Invalid execution mode'}
