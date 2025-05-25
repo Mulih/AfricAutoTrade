@@ -61,3 +61,23 @@ class TradeExecutor:
         else:
             # return self.broker_client.get_balance()
             return {'cash': 0.0, 'asset_holdings': {}} # placehoder for live
+
+
+if __name__ == "__main__":
+    # ensure there is a .ev file with dummy API keys for local testing
+    executor = TradeExecutor(
+        api_key=os.getenv('BINANCE_API_KEY', 'dummy_key'),
+        api_secret=os.getenv('BINANCE_API_SECRET', 'dummy_secret'),
+        mode='paper' # starting with paper for safety
+    )
+
+    # Simulate a buy order
+    buy_result = executor.execute_trade('BTCUSD', 'buy', 0.001)
+    print("Buy Order Result:", buy_result)
+
+    # Simulate a sell order
+    sell_result = executor.execute_trade('ETHUSD', 'sell', 0.005)
+    print("Sell Order Result:", sell_result)
+
+    balance = executor.get_account_balance()
+    print("Current Account Balance:", balance)
