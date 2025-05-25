@@ -3,7 +3,14 @@ import pandas as pd
 from typing import Dict, Any
 from dotenv import load_dotenv
 
-# from binance import Client
+
+try:
+    from binance.client import Client as BinanceClient
+    from binance.enums import *
+    from binance.exceptions import BinanceAPIException, BinanceRequestException
+except ImportError:
+    print("Warning: 'python-binance' library not found. Live trading functionality will be simulated.")
+    BinanceClient = None
 
 load_dotenv() # Load environment variables from .env file
 
@@ -12,10 +19,29 @@ class TradeExecutor:
         self.api_key = api_key
         self.api_secret = api_secret
         self.mode = mode # 'live' or 'paper'
+        self.broker_client = None
+
         print(f"TradeExecutor initialized in {self.mode} mode.")
 
-        # Placeholder for binance API client
-        # self.broker_client = binance.Client(api_key, api_secret)
+        if self.mode == 'live':
+            if BinanceClient:
+                try:
+                    self.broker_client = BinanceClient(api_key, api_secret)
+                    # Test connection by getting server time
+                    server_time = self.broker_client.get_server_time()
+                    print(f"Connected to Binance API. Server time: {server_time['serverTime']}")
+                except (BinanceAPIException, BinanceRequestException) as e:
+                    print(f"ERROR: Could not connect to Binance API in live mode: {e}")
+                    print("Falling back to paper trading mode due to API connection failure.")
+                    self.mode = 'paper' # Fallback if live connection fails
+                except Exception as e:
+                    print(f"An unexpected error occurred Binance client initialization: {e}")
+                    print("Falling back to paper trading mode.")
+                    self.mode = 'paper'
+                else:
+                    print("Binance client not available. Live trading functionality cannot be used.")
+                    print("Falling back to paper trading mode.")
+                    self.mode = 'paper'
 
     def execute_trade(self, symbol: str, order_type: str, quantity: float) -> Dict[str, Any]:
         """
