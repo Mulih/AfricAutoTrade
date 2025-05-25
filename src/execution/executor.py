@@ -48,6 +48,49 @@ class TradeExecutor:
         self.paper_holdings: Dict[str, float] = {}
 
 
+    def simulate_trade(self, symbol: str, order_type: str, quantity: float, price: float) -> Dict[str, Any]:
+        """
+        Simulates a trade for paper trading mode.
+        Calculates impact on paper cash and holdings.
+        """
+        timestamp = pd.Timestamp.now().isoformat()
+        cost = quantity * price
+
+        if order_type == 'buy':
+            if self.paper_cash >= cost:
+                self.paper_cash -= cost
+                self.paper_holdings[symbol] = self.paper_holdings.get(symbol, 0.0) + quantity
+                status = 'success'
+                message = f"[PAPER TRADE] Successfully simulated BUY {quantity} of {symbol} at {price:.2f}. Remaining cash: {self.paper_cash:.2f}"
+            else:
+                status = 'failed'
+                message = f"[PAPER TRADE] Failed to BUY {quantity} of {symbol} at {price:.2f}: Insufficient cash. Current cash: {self.paper_cash:.2f}"
+        elif order_type == 'sell':
+            if self.paper_holdings.get(symbol, 0.0) >= quantity:
+                self.paper_cash += cost # Selling adds cash
+                self.paper_holdings[symbol] = self.paper_holdings.get(symbol, 0.0) - quantity
+                status = 'success'
+                message = f"[PAPER TRADE] Successfully simulated SELL {quantity} of {symbol} at {price:.2f}. Current cash: {self.paper_cash:.2f}"
+            else:
+                status = 'failed'
+                message = f"[PAPER TRADE] Failed to SELL {quantity} of {symbol} at {price:.2f}: Insufficient {symbol} holdings. Current holdings: {self.paper_holdings.get(symbol, 0.0):.4f}"
+        else:
+            status = 'failed'
+            message = f"[PAPER TRAADE] Invalid order type: {order_type}"
+
+        print(message)
+        return {
+            'status': status,
+            'order_id': f"sim_order_{os.urandom(4).hex()}",
+            'symbol': symbol,
+            'type': order_type,
+            'quantity': quantity,
+            'price': price,
+            'timestamp': timestamp,
+            'message': message
+        }
+
+
     def execute_trade(self, symbol: str, order_type: str, quantity: float) -> Dict[str, Any]:
         """
         Executes a trade order with the brokerage.
