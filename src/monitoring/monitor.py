@@ -73,3 +73,29 @@ class TradingMonitor:
         self.log_event('warning', f"ALERT: {message}")
         # Integrate notification service AWS SNS
         print(f"--- ALERT SENT: {message} ---")
+
+    def get_current_metrics(self):
+        return self.performance_metrics
+
+if __name__ == "__main__":
+    monitor = TradingMonitor()
+
+    monitor.log_event('info', "Bot started successfully.")
+    monitor.log_event('warning', "High volatility detected.")
+    monitor.log_event('error', "Failed to connect to market data API.", trade_details={'api': 'example.com'})
+
+    # Simulate trade updates
+    monitor.update_metrics(trade_result={'status': 'success', 'profit_loss': 10.50}, current_balance=10010.50)
+    monitor.update_metrics(trade_result={'status': 'success', 'profit_loss': -5.00}, current_balance=10005.50)
+    monitor.update_metrics(trade_result={'status': 'failed', 'error': 'Insufficient funds'})
+
+    monitor.update_metrics(current_balance=9999.00)
+
+    monitor.send_alert("Low cash balance. Consider pausing trading.")
+
+    print("\nFinal Metrics:", monitor.get_current_metrics())
+
+    # Simulate a loop
+    for i in range(3):
+        monitor.log_event('info', f"Processing cycle {i+1}")
+        time.sleep(1)
