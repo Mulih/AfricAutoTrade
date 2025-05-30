@@ -4,7 +4,7 @@ from typing import Any, Optional, Dict
 from src.data_ingestion import get_order_book_metrics
 
 class TradingMonitor:
-    def __init__(self, log_file: str = 'trading_bot.log'):
+    def __init__(self, log_file: str = 'logs/trading_bot_run.log'):
         self.log_file = log_file
         self.logger = self._setup_logger()
         self.performance_metrics: dict[str, Any] = {
@@ -18,8 +18,15 @@ class TradingMonitor:
         logger = logging.getLogger('TradingBot')
         logger.setLevel(logging.INFO)
 
-        # File handler
-        fh = logging.FileHandler(self.log_file)
+        # File handler (write to a writable directory in Docker)
+        log_path = self.log_file
+        try:
+            fh = logging.FileHandler(log_path)
+        except PermissionError:
+            # Fallback to /tmp if not writable, and log the fallback
+            log_path = f"/tmp/{self.log_file}"
+            print(f"[Logging] Permission denied for {self.log_file}, using {log_path} instead.")
+            fh = logging.FileHandler(log_path)
         fh.setLevel(logging.INFO)
 
         # Console handler
@@ -31,10 +38,11 @@ class TradingMonitor:
         fh.setFormatter(formatter)
         ch.setFormatter(formatter)
 
-        # Add handlers
-        if not logger.handlers: # prevent adding handlers multiple times
-            logger.addHandler(fh)
-            logger.addHandler(ch)
+        # Remove all handlers before adding (to avoid duplicate logs in reloads)
+        if logger.hasHandlers():
+            logger.handlers.clear()
+        logger.addHandler(fh)
+        logger.addHandler(ch)
         return logger
 
     def log_event(self, level: str, message: str, trade_details: Optional[Dict[str, Any]] =None):

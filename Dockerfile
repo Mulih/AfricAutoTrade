@@ -30,6 +30,10 @@ RUN adduser \
     --uid "${UID}" \
     appuser
 
+# Create a logs directory and set permissions for the app user
+RUN mkdir -p /app/logs \
+    && chown -R 1000:1000 /app/logs
+
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
 # Leverage a bind mount to requirements.txt to avoid having to copy them into
@@ -39,7 +43,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     python -m pip install -r requirements.txt
 
 # Switch to the non-privileged user to run the application.
-USER appuser
+USER 1000
 
 # Copy the source code into the container.
 COPY . .
@@ -48,4 +52,4 @@ COPY . .
 EXPOSE 8000
 
 # Run the application.
-CMD ["gunicorn", ".venv.lib.python3.12.site-packages.werkzeug.wsgi", "--bind=0.0.0.0:8000"]
+CMD ["uvicorn", "src.mcp_server:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -11,7 +11,7 @@ class AIModel:
         self.scaler = StandardScaler()
         self.is_trained = False
 
-    def train(self, X_train: pd.DataFrame, y_train: pd.Series[int]) -> None:
+    def train(self, X_train: pd.DataFrame, y_train: pd.Series) -> None:
         """Trains the AI Model"""
         print("Training AI model...")
         X_scaled = self.scaler.fit_transform(X_train)

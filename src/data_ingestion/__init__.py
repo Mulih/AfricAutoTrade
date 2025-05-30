@@ -116,13 +116,13 @@ def get_onchain_data(asset: str = 'BTC') -> Dict[str, Any]:
 # 5. Technical Indicators (using pandas-ta if available)
 try:
     import pandas_ta as ta
-    HAS_TA = True
+    has_ta = True
 except ImportError:
-    HAS_TA = False
+    has_ta = False
 
 def add_technical_indicators(df: pd.DataFrame) -> pd.DataFrame:
     """Adds common technical indicators to a DataFrame (SMA, RSI, MACD, etc.)."""
-    if not HAS_TA:
+    if not has_ta:
         print("pandas-ta not installed. Skipping technical indicators.")
         return df
     df = df.copy()
