@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 import joblib # type: ignore
+from src.data_ingestion import get_order_book_metrics
 
 class AIModel:
     def __init__(self):
@@ -18,11 +19,13 @@ class AIModel:
         self.is_trained = True
         print("AI model training complete.")
 
-    def predict(self, features: Dict[str, float]) -> int:
-        """Makes a prediction based on input features."""
+    def predict(self, features: Dict[str, float], symbol: str = 'BTCUSDT') -> int:
+        """Makes a prediction based on input features and order book analytics."""
         if not self.is_trained:
             raise Exception("Model is not trained yet. Please train the model before prediction.")
-
+        # Optionally enrich features with order book metrics
+        ob_metrics = get_order_book_metrics(symbol)
+        features = {**features, 'ob_spread': ob_metrics['spread'] or 0.0, 'ob_imbalance': ob_metrics['imbalance'] or 0.0}
         X = pd.DataFrame([features])
         X_scaled = self.scaler.transform(X)
         prediction = self.model.predict(X_scaled)
