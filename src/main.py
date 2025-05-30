@@ -97,6 +97,8 @@ def run_trading_bot(stop_event: Optional[threading.Event] = None):
             # 6. Monitoring and Metrics Update
             current_balance = executor.get_account_balance().get('cash')
             monitor.update_metrics(current_balance=current_balance)
+            # Fetch and log order book metrics for monitoring
+            monitor.update_order_book_metrics(symbol='BTCUSDT', limit=10)
 
             # Simulate historical trades for performance evaulation (optional, done in backtesting)
             # historical_trades_mock = [{'type': 'buy', 'entry_price': 6500, 'exit_price': 65100, 'quantity': 0.001, 'profit_loss': 0.1}]

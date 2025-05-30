@@ -1,6 +1,7 @@
 import logging
 import time
 from typing import Any, Optional, Dict
+from src.data_ingestion import get_order_book_metrics
 
 class TradingMonitor:
     def __init__(self, log_file: str = 'trading_bot.log'):
@@ -76,6 +77,19 @@ class TradingMonitor:
 
     def get_current_metrics(self):
         return self.performance_metrics
+
+    def update_order_book_metrics(self, symbol: str = 'BTCUSDT', limit: int = 10):
+        """Fetch and log order book metrics for monitoring and analytics."""
+        metrics = get_order_book_metrics(symbol, limit)
+        self.performance_metrics.update({
+            'order_book_spread': metrics['spread'],
+            'order_book_imbalance': metrics['imbalance'],
+            'order_book_vwap_bid': metrics['vwap_bid'],
+            'order_book_vwap_ask': metrics['vwap_ask'],
+            'order_book_bid_qty': metrics['bid_qty'],
+            'order_book_ask_qty': metrics['ask_qty']
+        })
+        self.log_event('info', f"Order book metrics: {metrics}")
 
 if __name__ == "__main__":
     monitor = TradingMonitor()

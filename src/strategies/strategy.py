@@ -1,16 +1,21 @@
 from typing import Dict, Any, List
+from src.data_ingestion import get_order_book_metrics
 class TradingStrategy:
     def __init__(self, ai_model: Any):
         self.ai_model = ai_model
         # place holder for other strategy parameters
 
-    def make_decision(self, market_data: Dict[str, Any], ai_prediction: int):
+    def make_decision(self, market_data: Dict[str, Any], ai_prediction: int, symbol: str = 'BTCUSDT'):
         """
         Makes a trading decision on current market data and AI prediction.
         :param maraket_data: dict of current market data (e.g., {'price': X, 'volume': Y})
         :param ai_prediction: The output from the AI model (e.g., 0 for 'sell/hold', 1 for 'buy')
         :return: 'buy', 'sell', or 'hold'
         """
+        ob_metrics = get_order_book_metrics(symbol)
+        spread = ob_metrics['spread']
+        imbalance = ob_metrics['imbalance']
+
         current_price = market_data.get('price')
 
         if current_price is None:
@@ -24,8 +29,16 @@ class TradingStrategy:
         elif ai_prediction == 0 and current_price > 64000: # Sell signal from AI and price above a threshold
             print(f"Strategy: AI recommends SELL and price is high ({current_price}). Decision: SELL")
             return 'sell'
+        elif ai_prediction == 1 and spread is not None and spread < 5 and imbalance is not None and imbalance > 0:
+            # Enhanced buy logic with order book metrics
+            print(f"Strategy: AI recommends BUY, spread={spread}, imbalance={imbalance}. Decision: BUY")
+            return 'buy'
+        elif ai_prediction == 0 and spread is not None and spread < 5 and imbalance is not None and imbalance < 0:
+            # Enhanced sell logic with order book metrics
+            print(f"Strategy: AI recommends SELL, spread={spread}, imbalance={imbalance}. Decision: SELL")
+            return 'sell'
         else:
-            print(f"Strategy: AI prediction: {ai_prediction}, Current Price: {current_price}. Decision: HOLD")
+            print(f"Strategy: HOLD. AI={ai_prediction}, spread={spread}, imbalance={imbalance}")
             return 'hold'
 
 
