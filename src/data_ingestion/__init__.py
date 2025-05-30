@@ -29,7 +29,9 @@ def get_order_book_spread(symbol: str = 'BTCUSDT', limit: int = 10) -> Dict[str,
     try:
         best_bid = float(order_book['bids'][0][0]) if order_book['bids'] else None
         best_ask = float(order_book['asks'][0][0]) if order_book['asks'] else None
-        spread = (best_ask - best_bid) if (best_bid is not None and best_ask is not None) else None
+        spread = (best_ask - best_bid) if (
+            best_bid is not None and best_ask is not None
+        ) else None
         bid_qty = float(order_book['bids'][0][1]) if order_book['bids'] else None
         ask_qty = float(order_book['asks'][0][1]) if order_book['asks'] else None
         return {
@@ -62,14 +64,17 @@ def get_order_book_metrics(symbol: str = 'BTCUSDT', limit: int = 10) -> Dict[str
         total_bid_qty = sum(float(bid[1]) for bid in ob['bids']) if ob['bids'] else 0.0
         total_ask_qty = sum(float(ask[1]) for ask in ob['asks']) if ob['asks'] else 0.0
         imbalance = (
-            (total_bid_qty - total_ask_qty) / (total_bid_qty + total_ask_qty)
+            (total_bid_qty - total_ask_qty) /
+            (total_bid_qty + total_ask_qty)
         ) if (total_bid_qty + total_ask_qty) > 0 else None
 
         def vwap(levels: List[Any]) -> float | None:
             total_qty = sum(float(level[1]) for level in levels)
             if total_qty == 0:
                 return None
-            return sum(float(level[0]) * float(level[1]) for level in levels) / total_qty
+            return sum(
+                float(level[0]) * float(level[1]) for level in levels
+            ) / total_qty
 
         vwap_bid = vwap(ob['bids']) if ob['bids'] else None
         vwap_ask = vwap(ob['asks']) if ob['asks'] else None
@@ -168,7 +173,8 @@ def get_market_data(symbol: str = 'BTCUSD', limit: int = 100) -> pd.DataFrame:
         df = pd.DataFrame(data, columns=[
             'open_time', 'open', 'high', 'low', 'close', 'volume',
             'close_time', 'quote_asset_volume', 'number_of_trades',
-            'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'ignore'
+            'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume',
+            'ignore'
         ])
         df['open_time'] = pd.to_datetime(df['open_time'], unit='ms') # type: ignore
         df['close_time'] = pd.to_datetime(df['close_time'], unit='ms') # type: ignore

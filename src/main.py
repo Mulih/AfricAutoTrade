@@ -35,8 +35,12 @@ def run_trading_bot(stop_event: Optional[threading.Event] = None):
         historical_data = get_market_data(symbol='BTCUSD', limit=1000)
         monitor.log_event('info', f"Fetched {len(historical_data)} rows of historical market data for BTCUSD.")
         # Example feature engineering: price_change, volume_change, and target signal
-        historical_data['price_change'] = historical_data['close'].pct_change().fillna(0) # type: ignore
-        historical_data['volume_change'] = historical_data['volume'].pct_change().fillna(0) # type: ignore
+        historical_data['price_change'] = (
+            historical_data['close'].pct_change().fillna(0) # type: ignore
+        )
+        historical_data['volume_change'] = (
+            historical_data['volume'].pct_change().fillna(0) # type: ignore
+        )
         # Dummy signal: 1 if price_change > 0 else 0
         historical_data['signal'] = (historical_data['price_change'] > 0).astype(int)
         X = historical_data[['price_change', 'volume_change']]
@@ -74,8 +78,14 @@ def run_trading_bot(stop_event: Optional[threading.Event] = None):
                 continue
 
             # Prepare features for AI model using real-time data
-            price_change = (current_market_data.get('price', 0) - historical_data['close'].iloc[-1]) / historical_data['close'].iloc[-1] # type: ignore
-            volume_change = (current_market_data.get('volume', 0) - historical_data['volume'].iloc[-1]) / historical_data['volume'].iloc[-1] # type: ignore
+            price_change = ( # type: ignore
+                (current_market_data.get('price', 0) - historical_data['close'].iloc[-1]) / # type: ignore
+                historical_data['close'].iloc[-1] # type: ignore
+            )
+            volume_change = ( # type: ignore
+                (current_market_data.get('volume', 0) - historical_data['volume'].iloc[-1]) / # type: ignore
+                historical_data['volume'].iloc[-1] # type: ignore
+            )
             ai_features = {'price_change': price_change, 'volume_change': volume_change} # type: ignore
 
             # 3. AI Prediction

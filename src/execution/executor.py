@@ -44,13 +44,21 @@ class TradeExecutor:
                 try:
                     self.broker_client = BinanceClient(api_key, api_secret)
                     server_time = self.broker_client.get_server_time()
-                    self.logger.info(f"Connected to Binance API. Server time: {server_time['serverTime']}")
+                    self.logger.info(
+                        f"Connected to Binance API. Server time: {server_time['serverTime']}"
+                    )
                 except (BinanceAPIException, BinanceRequestException) as e:  # type: ignore
-                    self.logger.error(f"Could not connect to Binance API in live mode: {e}")
-                    self.logger.warning("Falling back to paper trading mode due to API connection failure.")
+                    self.logger.error(
+                        f"Could not connect to Binance API in live mode: {e}"
+                    )
+                    self.logger.warning(
+                        "Falling back to paper trading mode due to API connection failure."
+                    )
                     self.mode = 'paper'
             else:
-                self.logger.error("Binance client not available. Live trading functionality cannot be used.")
+                self.logger.error(
+                    "Binance client not available. Live trading functionality cannot be used."
+                )
                 self.logger.warning("Falling back to paper trading mode.")
                 self.mode = 'paper'
 
@@ -70,21 +78,38 @@ class TradeExecutor:
         if order_type == 'buy':
             if self.paper_cash >= cost:
                 self.paper_cash -= cost
-                self.paper_holdings[symbol] = self.paper_holdings.get(symbol, 0.0) + quantity
+                self.paper_holdings[symbol] = (
+                    self.paper_holdings.get(symbol, 0.0) + quantity
+                )
                 status = 'success'
-                message = f"[PAPER TRADE] Successfully simulated BUY {quantity} of {symbol} at {price:.2f}. Remaining cash: {self.paper_cash:.2f}"
+                message = (
+                    f"[PAPER TRADE] Successfully simulated BUY {quantity} of {symbol} "
+                    f"at {price:.2f}. Remaining cash: {self.paper_cash:.2f}"
+                )
             else:
                 status = 'failed'
-                message = f"[PAPER TRADE] Failed to BUY {quantity} of {symbol} at {price:.2f}: Insufficient cash. Current cash: {self.paper_cash:.2f}"
+                message = (
+                    f"[PAPER TRADE] Failed to BUY {quantity} of {symbol} at {price:.2f}: "
+                    f"Insufficient cash. Current cash: {self.paper_cash:.2f}"
+                )
         elif order_type == 'sell':
             if self.paper_holdings.get(symbol, 0.0) >= quantity:
                 self.paper_cash += cost
-                self.paper_holdings[symbol] = self.paper_holdings.get(symbol, 0.0) - quantity
+                self.paper_holdings[symbol] = (
+                    self.paper_holdings.get(symbol, 0.0) - quantity
+                )
                 status = 'success'
-                message = f"[PAPER TRADE] Successfully simulated SELL {quantity} of {symbol} at {price:.2f}. Current cash: {self.paper_cash:.2f}"
+                message = (
+                    f"[PAPER TRADE] Successfully simulated SELL {quantity} of {symbol} "
+                    f"at {price:.2f}. Current cash: {self.paper_cash:.2f}"
+                )
             else:
                 status = 'failed'
-                message = f"[PAPER TRADE] Failed to SELL {quantity} of {symbol} at {price:.2f}: Insufficient {symbol} holdings. Current holdings: {self.paper_holdings.get(symbol, 0.0):.4f}"
+                message = (
+                    f"[PAPER TRADE] Failed to SELL {quantity} of {symbol} at {price:.2f}: "
+                    f"Insufficient {symbol} holdings. Current holdings: "
+                    f"{self.paper_holdings.get(symbol, 0.0):.4f}"
+                )
         else:
             status = 'failed'
             message = f"[PAPER TRADE] Invalid order type: {order_type}"

@@ -2,7 +2,9 @@ import logging
 from typing import Any, Optional, Dict
 from src.data_ingestion import get_order_book_metrics
 
+
 class TradingMonitor:
+
     def __init__(self, log_file: str = 'logs/trading_bot_run.log'):
         self.log_file = log_file
         self.logger = self._setup_logger()
@@ -21,7 +23,9 @@ class TradingMonitor:
             fh = logging.FileHandler(log_path)
         except PermissionError:
             log_path = f"/tmp/{self.log_file}"
-            print(f"[Logging] Permission denied for {self.log_file}, using {log_path} instead.")
+            print(
+                f"[Logging] Permission denied for {self.log_file}, using {log_path} instead."
+            )
             fh = logging.FileHandler(log_path)
         fh.setLevel(logging.INFO)
         ch = logging.StreamHandler()

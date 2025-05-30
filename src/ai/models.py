@@ -17,7 +17,7 @@ class AIModel:
         print("Training AI model...")
         X_scaled = self.scaler.fit_transform(X_train) # type: ignore
         self.model.fit(X_scaled, y_train)  # type: ignore[arg-type]
-        self.is_trained = True
+        self.is_trained = True  # Model is now trained
         print("AI model training complete.")
 
     def predict(self, features: Dict[str, float], symbol: str = 'BTCUSDT') -> int:
@@ -28,18 +28,18 @@ class AIModel:
         ob_metrics = get_order_book_metrics(symbol)
         features = {
             **features,
-            'ob_spread': ob_metrics['spread'] or 0.0,
-            'ob_imbalance': ob_metrics['imbalance'] or 0.0
+            'ob_spread': ob_metrics['spread'] or 0.0,  # Add order book spread
+            'ob_imbalance': ob_metrics['imbalance'] or 0.0  # Add order book imbalance
         }
         X = pd.DataFrame([features])
         X_scaled = self.scaler.transform(X) # type: ignore
         prediction = self.model.predict(X_scaled) # type: ignore
-        return int(prediction[0])  # return the single prediction
+        return int(prediction[0])  # Return the single prediction
 
     def save_model(self, path: str = 'ai_model.joblib') -> None:
         """Save the trained model."""
-        joblib.dump({'model': self.model, 'scaler': self.scaler}, path)  # type: ignore
-        print(f"AI model saved to {path}")
+        joblib.dump({'model': self.model, 'scaler': self.scaler}, path) # type: ignore
+        print(f"AI model saved to {path}")  # Model saved
 
     def load_model(self, path: str = 'ai_model.joblib') -> None:
         """Loads a pre-trained model."""
@@ -48,17 +48,17 @@ class AIModel:
             self.model = data['model']
             self.scaler = data['scaler']
             self.is_trained = True
-            print(f"AI model loaded from {path}")
+            print(f"AI model loaded from {path}")  # Model loaded
         except Exception:
             self.is_trained = False
-            print(f"No model found at {path}. A new model will be used/trained.")
+            print(f"No model found at {path}. A new model will be used/trained.")  # No model found
 
 
 if __name__ == "__main__":
     # Example: Simple dummy data for demonstration
     # Features: price_change (e.g., % change), volume_change
     # Target: 'buy' (1) or 'sell' (0)
-    data: dict[str, list[float] | list[int]] = {
+    data = { # type: ignore
         'price_change': [0.01, -0.005, 0.02, -0.01, 0.008, 0.03, -0.015, 0.002],
         'volume_change': [0.1, -0.05, 0.2, -0.1, 0.08, 0.3, -0.15, 0.02],
         'signal': [1, 0, 1, 0, 1, 1, 0, 1]  # 1 for buy, 0 for sell/hold
@@ -74,6 +74,6 @@ if __name__ == "__main__":
     # Make a prediction
     sample_features = {'price_change': 0.007, 'volume_change': 0.07}
     prediction = ai_model.predict(sample_features)
-    print(f"Prediction for features {sample_features}: {'Buy' if prediction == 1 else 'Sell/Hold'}")
+    print(f"Prediction for features {sample_features}: {'Buy' if prediction == 1 else 'Sell/Hold'}")  # Print prediction
 
     ai_model.save_model()
