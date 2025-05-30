@@ -2,6 +2,8 @@ import time
 import os
 import pandas as pd
 from dotenv import load_dotenv
+import threading
+from typing import Optional
 
 from src.data_ingestion import get_market_data, get_realtime_data
 from src.ai.models import AIModel
@@ -9,7 +11,11 @@ from src.strategies.strategy import TradingStrategy
 from src.execution.executor import TradeExecutor
 from src.monitoring.monitor import TradingMonitor
 
-def run_trading_bot():
+# Global stop event for graceful shutdown
+bot_stop_event = threading.Event()
+
+
+def run_trading_bot(stop_event: Optional[threading.Event] = None):
     # 1. Initialize Components
     monitor = TradingMonitor(log_file='trading_bot_run.log')
     monitor.log_event('info', "Initializing trading bot components...")
@@ -40,9 +46,17 @@ def run_trading_bot():
 
     monitor.log_event('info', "Trading bot components initialized successfully.")
 
+    # Example: Use get_market_data for initial historical data (optional, for feature engineering or backtesting)
+    historical_data = get_market_data(symbol='BTCUSD', limit=100)
+    monitor.log_event('info', f"Fetched {len(historical_data)} rows of historical market data for BTCUSD.")
+
     # Main Trading Loop
     try:
         while True:
+            if stop_event and stop_event.is_set():
+                monitor.log_event('info', "Stop event received. Exiting trading loop.")
+                break
+
             monitor.log_event('info', "--- Starting new trading cycle ---")
 
             # 2. Data Ingestion
@@ -93,12 +107,18 @@ def run_trading_bot():
             # 7. Pause before next cycle
             sleep_time = int(os.getenv('TRADING_CYCLE_INTERVAL_SECONDS', 300)) # Default to 5 minutes
             monitor.log_event('info', f"Sleeping for {sleep_time} seconds...")
-            time.sleep(sleep_time)
+            for _ in range(sleep_time):
+                if stop_event and stop_event.is_set():
+                    monitor.log_event('info', "Stop event received during sleep. Exiting trading loop.")
+                    break
+                time.sleep(1)
+            if stop_event and stop_event.is_set():
+                break
 
     except KeyboardInterrupt:
         monitor.log_event('info', "Bot stopped manually (KeyboardInterrupt).")
     except Exception as e:
-        monitor.log_event('critical', f"An unexpected error occured: {e}", exc_info=True)
+        monitor.log_event('critical', f"An unexpected error occured: {e}")
         monitor.send_alert(f"Critical error in trading bot: {e}")
     finally:
         monitor.log_event('info', "Trading bot finished.")
@@ -109,4 +129,4 @@ if __name__ == "__main__":
     # EXECUTION_MODE=paper
     # BROKER_API_KEY=dummy_key
     # BROKER_API_SECRET=dummy_secret
-    run_trading_bot()
+    run_trading_bot(stop_event=bot_stop_event)

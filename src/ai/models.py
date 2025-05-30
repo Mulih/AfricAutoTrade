@@ -1,46 +1,49 @@
-from sklearn.ensemble import RandomForestClassifier
+from typing import Dict
 import pandas as pd
-import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import StandardScaler
 import joblib # type: ignore
 
 class AIModel:
     def __init__(self):
         self.model = RandomForestClassifier(n_estimators=100, random_state=42)
-        # Will replace with training pipeline or pre-trained model
+        self.scaler = StandardScaler()
+        self.is_trained = False
 
-    def train(self, X_train: pd.DataFrame, y_train: pd.Series) -> None:
+    def train(self, X_train: pd.DataFrame, y_train: pd.Series[int]) -> None:
         """Trains the AI Model"""
         print("Training AI model...")
-        self.model.fit(X_train, y_train)  # type: ignore
+        X_scaled = self.scaler.fit_transform(X_train)
+        self.model.fit(X_scaled, y_train)  # type: ignore[arg-type]
+        self.is_trained = True
         print("AI model training complete.")
 
-    def predict(self, features):
+    def predict(self, features: Dict[str, float]) -> int:
         """Makes a prediction based on input features."""
-        # 'features' should be 2D array
-        if isinstance(features, pd.Series):
-            features = features.to_frame().T # convert Series to Dataframe and transpose
-        elif isinstance(features, dict):
-            features = pd.DataFrame([features])
+        if not self.is_trained:
+            raise Exception("Model is not trained yet. Please train the model before prediction.")
 
-        # Ensures features are in correct format for prediction
-        # you might need to prepocess 'features' to match training data format
-        # For this example, let's assume features are numeric.
+        X = pd.DataFrame([features])
+        X_scaled = self.scaler.transform(X)
+        prediction = self.model.predict(X_scaled)
+        return int(prediction[0]) # return the single prediction
 
-        prediction = self.model.predict(features)
-        return prediction[0] # return the single prediction
-
-    def save_model(self, path="ai_model.joblib"):
+    def save_model(self, path: str = 'ai_model.joblib') -> None:
         """Save the trained model."""
-        joblib.dump(self.model, path)
+        joblib.dump({'model': self.model, 'scaler': self.scaler}, path)
         print(f"AI model saved to {path}")
 
-    def load_model(self, path="ai_model.joblib"):
+    def load_model(self, path: str = 'ai_model.joblib') -> None:
         """Loads a pre-trained model."""
         try:
-            self.model = joblib.load(path)
+            data = joblib.load(path)  # type: ignore[no-untyped-call]
+            self.model = data['model']
+            self.scaler = data['scaler']
+            self.is_trained = True
             print(f"AI model loaded from {path}")
-        except FileNotFoundError:
-            print(F"No model found at {path}. A new model will be used/trained.")
+        except Exception:
+            self.is_trained = False
+            print(f"No model found at {path}. A new model will be used/trained.")
 
 
 if __name__ == "__main__":
