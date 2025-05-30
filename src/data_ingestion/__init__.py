@@ -4,7 +4,7 @@ import asyncio
 import websockets
 from typing import Dict, Any, List, Optional
 
-# --- Advanced Data Sources and Features Scaffold ---
+# --- Data Sources and Features ---
 
 # 1. Order Book Data
 
