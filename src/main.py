@@ -33,21 +33,27 @@ def run_trading_bot(stop_event: Optional[threading.Event] = None):
     if not model_loaded:
         # Use real historical data for training
         historical_data = get_market_data(symbol='BTCUSD', limit=1000)
-        monitor.log_event('info', f"Fetched {len(historical_data)} rows of historical market data for BTCUSD.")
-        # Example feature engineering: price_change, volume_change, and target signal
+        monitor.log_event('info',
+                          f"Fetched {len(historical_data)} \
+                          rows of historical market data for BTCUSD.")
+        # Example feature engineering: price_change,
+        # volume_change, and target signal
         historical_data['price_change'] = (
-            historical_data['close'].pct_change().fillna(0) # type: ignore
+            historical_data['close'].pct_change().fillna(0)  # type: ignore
         )
         historical_data['volume_change'] = (
-            historical_data['volume'].pct_change().fillna(0) # type: ignore
+            historical_data['volume'].pct_change().fillna(0)  # type: ignore
         )
         # Dummy signal: 1 if price_change > 0 else 0
-        historical_data['signal'] = (historical_data['price_change'] > 0).astype(int)
+        historical_data['signal'] = (historical_data['price_change']
+                                     > 0).astype(int)
         X = historical_data[['price_change', 'volume_change']]
         y = historical_data['signal'] # type: ignore
         ai_model.train(X, y) # type: ignore
         ai_model.save_model()
-        monitor.log_event('info', "Trained AI model on historical data and saved model.")
+        monitor.log_event('info',
+                          "Trained AI model on historical data "
+                          "and saved model.")
 
     strategy = TradingStrategy(ai_model=ai_model)
 
@@ -59,69 +65,88 @@ def run_trading_bot(stop_event: Optional[threading.Event] = None):
         mode=execution_mode
     )
 
-    monitor.log_event('info', "Trading bot components initialized successfully.")
+    monitor.log_event('info',
+                      "Trading bot components initialized successfully.")
 
     # Main Trading Loop
     try:
         while True:
             if stop_event and stop_event.is_set():
-                monitor.log_event('info', "Stop event received. Exiting trading loop.")
+                monitor.log_event('info', "Stop event received. " \
+                "Exiting trading loop.")
                 break
 
             monitor.log_event('info', "--- Starting new trading cycle ---")
 
             # 2. Data Ingestion
             current_market_data = get_realtime_data(symbol='BTCUSD')
-            if not current_market_data or current_market_data.get('price') is None:
-                monitor.log_event('error', "Failed to get current market. Skipping cycle.")
+            if not current_market_data or \
+                    current_market_data.get('price') is None:
+                monitor.log_event('error',
+                                  "Failed to get current market. " \
+                                  "Skipping cycle.")
                 time.sleep(60)
                 continue
 
             # Prepare features for AI model using real-time data
-            price_change = ( # type: ignore
-                (current_market_data.get('price', 0) - historical_data['close'].iloc[-1]) / # type: ignore
-                historical_data['close'].iloc[-1] # type: ignore
+            price_change = (  # type: ignore
+                (current_market_data.get('price', 0) -
+                 historical_data['close'].iloc[-1]) /  # type: ignore
+                historical_data['close'].iloc[-1]  # type: ignore
             )
             volume_change = ( # type: ignore
-                (current_market_data.get('volume', 0) - historical_data['volume'].iloc[-1]) / # type: ignore
-                historical_data['volume'].iloc[-1] # type: ignore
+                (current_market_data.get('volume', 0) -
+                historical_data['volume'].iloc[-1]) /  # type: ignore
+                historical_data['volume'].iloc[-1]  # type: ignore
             )
-            ai_features = {'price_change': price_change, 'volume_change': volume_change} # type: ignore
+            ai_features = {'price_change': price_change,  # type: ignore
+                           'volume_change': volume_change}
 
             # 3. AI Prediction
-            ai_prediction = ai_model.predict(ai_features) # type: ignore
-            monitor.log_event('info', f"AI predicted: {ai_prediction} for market data: {current_market_data}")
+            ai_prediction = ai_model.predict(ai_features)  # type: ignore
+            monitor.log_event('info', f"AI predicted: {ai_prediction} \
+                              for market data: {current_market_data}")
 
             # 4. Trading Strategy Decision
-            decision = strategy.make_decision(current_market_data, ai_prediction)
+            decision = strategy.make_decision(current_market_data,
+                                              ai_prediction)
             monitor.log_event('info', f"Strategy decision: {decision}")
 
             # 5. Trade Execution
             if decision == 'buy':
                 quantity_to_buy = 0.0001  # example
-                trade_result = executor.execute_trade('BTCUSD', 'buy', quantity_to_buy)
-                monitor.log_event('info', "Buy order executed.", trade_details=trade_result)
+                trade_result = executor.execute_trade('BTCUSD', 'buy',
+                                                      quantity_to_buy)
+                monitor.log_event('info', "Buy order executed.",
+                                  trade_details=trade_result)
                 monitor.update_metrics(trade_result=trade_result)
             elif decision == 'sell':
                 quantity_to_sell = 0.0001  # example
-                trade_result = executor.execute_trade('BTCUSD', 'sell', quantity_to_sell)
-                monitor.log_event('info', "Sell order executed.", trade_details=trade_result)
+                trade_result = executor.execute_trade('BTCUSD', 'sell',
+                                                      quantity_to_sell)
+                monitor.log_event('info', "Sell order executed.",
+                                  trade_details=trade_result)
                 monitor.update_metrics(trade_result=trade_result)
             else:
-                monitor.log_event('info', "Holding. No trade executed this cycle.")
+                monitor.log_event('info',
+                                  "Holding. No trade executed this cycle.")
 
             # 6. Monitoring and Metrics Update
             current_balance = executor.get_account_balance().get('cash')
             monitor.update_metrics(current_balance=current_balance)
             monitor.update_order_book_metrics(symbol='BTCUSDT', limit=10)
-            monitor.log_event('info', f"Current Bot Metrics: {monitor.get_current_metrics()}")
+            monitor.log_event('info',
+                              f"Current Bot Metrics: \
+                                        {monitor.get_current_metrics()}")
 
             # 7. Pause before next cycle
             sleep_time = int(os.getenv('TRADING_CYCLE_INTERVAL_SECONDS', 300))
             monitor.log_event('info', f"Sleeping for {sleep_time} seconds...")
             for _ in range(sleep_time):
                 if stop_event and stop_event.is_set():
-                    monitor.log_event('info', "Stop event received during sleep. Exiting trading loop.")
+                    monitor.log_event('info',
+                                      "Stop event received during sleep. " \
+                                      "Exiting trading loop.")
                     break
                 time.sleep(1)
             if stop_event and stop_event.is_set():
@@ -139,7 +164,4 @@ def run_trading_bot(stop_event: Optional[threading.Event] = None):
 if __name__ == "__main__":
     load_dotenv()
     # TRADING_CYCLE_INTERVAL_SECONDS=60
-    # EXECUTION_MODE=paper
-    # BROKER_API_KEY=dummy_key
-    # BROKER_API_SECRET=dummy_secret
     run_trading_bot(stop_event=bot_stop_event)

@@ -24,13 +24,15 @@ class TradingMonitor:
         except PermissionError:
             log_path = f"/tmp/{self.log_file}"
             print(
-                f"[Logging] Permission denied for {self.log_file}, using {log_path} instead."
+                f"[Logging] Permission denied for {self.log_file}, \
+                                            using {log_path} instead."
             )
             fh = logging.FileHandler(log_path)
         fh.setLevel(logging.INFO)
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter('%(asctime)s - %(name)s - '
+                                      '%(levelname)s - %(message)s')
         fh.setFormatter(formatter)
         ch.setFormatter(formatter)
         if logger.hasHandlers():
@@ -39,7 +41,8 @@ class TradingMonitor:
         logger.addHandler(ch)
         return logger
 
-    def log_event(self, level: str, message: str, trade_details: Optional[Dict[str, Any]] = None):
+    def log_event(self, level: str, message: str,
+                  trade_details: Optional[Dict[str, Any]] = None):
         """Logs an event with specified level."""
         if trade_details:
             message += f" Details: {trade_details}"
@@ -54,12 +57,14 @@ class TradingMonitor:
         else:
             self.logger.debug(message)
 
-    def update_metrics(self, trade_result: Optional[Dict[str, Any]] = None, current_balance: Optional[float] = None):
+    def update_metrics(self, trade_result: Optional[Dict[str, Any]] = None,
+                       current_balance: Optional[float] = None):
         """Updates internal performance metrics."""
         if trade_result:
             self.performance_metrics['trades_executed'] += 1
             if trade_result.get('status') == 'success':
-                self.performance_metrics['total_profit_loss'] += trade_result.get('profit_loss', 0)
+                self.performance_metrics['total_profit_loss'] += \
+                                        trade_result.get('profit_loss', 0)
                 if trade_result.get('profit_loss', 0) > 0:
                     self.performance_metrics['profitable_trades'] += 1
         if current_balance is not None:
@@ -75,7 +80,8 @@ class TradingMonitor:
     def get_current_metrics(self):
         return self.performance_metrics
 
-    def update_order_book_metrics(self, symbol: str = 'BTCUSDT', limit: int = 10):
+    def update_order_book_metrics(self, symbol: str = 'BTCUSDT',
+                                  limit: int = 10):
         """Fetch and log order book metrics for monitoring and analytics."""
         metrics = get_order_book_metrics(symbol, limit)
         self.performance_metrics.update({
