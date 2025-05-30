@@ -5,9 +5,6 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/mulih/africautotrade?label=Docker%20Pulls)](https://hub.docker.com/r/mulih/africautotrade)
 [![GitHub stars](https://img.shields.io/github/stars/Mulih/AfricAutoTrade?style=social)](https://github.com/Mulih/AfricAutoTrade)
 
-<p align="center">
-</p>
-
 ---
 
 ## Overview
