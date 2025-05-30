@@ -19,6 +19,12 @@ load_dotenv() # Load environment variables from .env file
 
 class TradeExecutor:
     def __init__(self, api_key: str, api_secret: str, mode: str = 'paper') -> None:
+        """
+        Initializes the TradeExecutor instance.
+        :param api_key: Binance API key
+        :param api_secret: Binance API secret
+        :param mode: Trading mode - 'paper' for simulated trading, 'live' for real trading
+        """
         self.api_key: str = api_key
         self.api_secret: str = api_secret
         self.mode: str = mode  # 'live' or 'paper'
@@ -42,6 +48,14 @@ class TradeExecutor:
                 self.mode = 'paper'
 
     def _simulate_trade(self, symbol: str, order_type: str, quantity: float, price: float) -> Dict[str, Any]:
+        """
+        Simulates a trade execution in paper trading mode.
+        :param symbol: Trading pair symbol (e.g., 'BTCUSD')
+        :param order_type: 'buy' or 'sell'
+        :param quantity: Amount to trade
+        :param price: Price at which to simulate the trade
+        :return: dict with simulated trade result/status
+        """
         timestamp: str = pd.Timestamp.now().isoformat()
         cost: float = quantity * price
         status: str
@@ -80,6 +94,14 @@ class TradeExecutor:
         }
 
     def execute_trade(self, symbol: str, order_type: str, quantity: float, price: Optional[float] = None) -> Dict[str, Any]:
+        """
+        Executes a trade (buy/sell) for the given symbol and quantity.
+        :param symbol: Trading pair symbol (e.g., 'BTCUSD')
+        :param order_type: 'buy' or 'sell'
+        :param quantity: Amount to trade
+        :param price: Optional limit price for the order (market price used if None)
+        :return: dict with trade result/status
+        """
         print(f"Attempting to execute {order_type} order for {quantity} of {symbol} in {self.mode} mode...")
         if self.mode == 'paper':
             mock_price: float = price if price is not None else (65000.0 if order_type == 'buy' else 64950.0)
@@ -139,6 +161,10 @@ class TradeExecutor:
             return {'status': 'failed', 'error': 'Invalid execution mode'}
 
     def get_account_balance(self) -> Dict[str, Any]:
+        """
+        Returns the current account balance (mocked for paper mode).
+        :return: dict with account balance info
+        """
         if self.mode == 'paper':
             return {'cash': self.paper_cash, 'asset_holdings': self.paper_holdings}
         elif self.mode == 'live':
@@ -164,23 +190,3 @@ class TradeExecutor:
                 return {'cash': 0.0, 'asset_holdings': {}, 'error': str(e)}
         else:
             return {'cash': 0.0, 'asset_holdings': {}, 'error': 'Invalid execution mode'}
-
-
-if __name__ == "__main__":
-    # ensure there is a .ev file with dummy API keys for local testing
-    executor = TradeExecutor(
-        api_key=os.getenv('BINANCE_API_KEY', 'dummy_key'),
-        api_secret=os.getenv('BINANCE_API_SECRET', 'dummy_secret'),
-        mode='paper' # starting with paper for safety
-    )
-
-    # Simulate a buy order
-    buy_result = executor.execute_trade('BTCUSD', 'buy', 0.001)
-    print("Buy Order Result:", buy_result)
-
-    # Simulate a sell order
-    sell_result = executor.execute_trade('ETHUSD', 'sell', 0.005)
-    print("Sell Order Result:", sell_result)
-
-    balance = executor.get_account_balance()
-    print("Current Account Balance:", balance)

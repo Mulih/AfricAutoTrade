@@ -1,10 +1,8 @@
 import pandas as pd
 import requests
-import asyncio
-import websockets
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 
-# --- Data Sources and Features ---
+# --- Advanced Data Sources and Features Scaffold ---
 
 # 1. Order Book Data
 
@@ -23,6 +21,7 @@ def get_order_book(symbol: str = 'BTCUSDT', limit: int = 100) -> Dict[str, Any]:
     except Exception as e:
         print(f"Error fetching order book: {e}")
         return {'bids': [], 'asks': [], 'lastUpdateId': None}
+
 
 def get_order_book_spread(symbol: str = 'BTCUSDT', limit: int = 10) -> Dict[str, Any]:
     """Fetches order book and computes spread and top-of-book liquidity."""
@@ -45,7 +44,11 @@ def get_order_book_spread(symbol: str = 'BTCUSDT', limit: int = 10) -> Dict[str,
         }
     except Exception as e:
         print(f"Error computing order book spread: {e}")
-        return {'best_bid': None, 'best_ask': None, 'spread': None, 'bid_qty': None, 'ask_qty': None, 'bids': [], 'asks': [], 'lastUpdateId': None}
+        return {
+            'best_bid': None, 'best_ask': None, 'spread': None, 'bid_qty': None,
+            'ask_qty': None, 'bids': [], 'asks': [], 'lastUpdateId': None
+        }
+
 
 def get_order_book_metrics(symbol: str = 'BTCUSDT', limit: int = 10) -> Dict[str, Any]:
     """Compute advanced order book metrics: spread, imbalance, depth-weighted price, liquidity."""
@@ -56,16 +59,18 @@ def get_order_book_metrics(symbol: str = 'BTCUSDT', limit: int = 10) -> Dict[str
         spread = (best_ask - best_bid) if (best_bid is not None and best_ask is not None) else None
         bid_qty = float(ob['bids'][0][1]) if ob['bids'] else None
         ask_qty = float(ob['asks'][0][1]) if ob['asks'] else None
-        # Order book imbalance: (sum(bid_qty) - sum(ask_qty)) / (sum(bid_qty) + sum(ask_qty))
-        total_bid_qty = sum(float(b[1]) for b in ob['bids']) if ob['bids'] else 0.0
-        total_ask_qty = sum(float(a[1]) for a in ob['asks']) if ob['asks'] else 0.0
-        imbalance = ((total_bid_qty - total_ask_qty) / (total_bid_qty + total_ask_qty)) if (total_bid_qty + total_ask_qty) > 0 else None
-        # Depth-weighted price (VWAP for top N levels)
-        def vwap(levels):
-            total_qty = sum(float(l[1]) for l in levels)
+        total_bid_qty = sum(float(bid[1]) for bid in ob['bids']) if ob['bids'] else 0.0
+        total_ask_qty = sum(float(ask[1]) for ask in ob['asks']) if ob['asks'] else 0.0
+        imbalance = (
+            (total_bid_qty - total_ask_qty) / (total_bid_qty + total_ask_qty)
+        ) if (total_bid_qty + total_ask_qty) > 0 else None
+
+        def vwap(levels: List[Any]) -> float | None:
+            total_qty = sum(float(level[1]) for level in levels)
             if total_qty == 0:
                 return None
-            return sum(float(l[0]) * float(l[1]) for l in levels) / total_qty
+            return sum(float(level[0]) * float(level[1]) for level in levels) / total_qty
+
         vwap_bid = vwap(ob['bids']) if ob['bids'] else None
         vwap_ask = vwap(ob['asks']) if ob['asks'] else None
         return {
@@ -83,12 +88,16 @@ def get_order_book_metrics(symbol: str = 'BTCUSDT', limit: int = 10) -> Dict[str
         }
     except Exception as e:
         print(f"Error computing order book metrics: {e}")
-        return {'best_bid': None, 'best_ask': None, 'spread': None, 'bid_qty': None, 'ask_qty': None, 'imbalance': None, 'vwap_bid': None, 'vwap_ask': None, 'bids': [], 'asks': [], 'lastUpdateId': None}
+        return {
+            'best_bid': None, 'best_ask': None, 'spread': None, 'bid_qty': None,
+            'ask_qty': None, 'imbalance': None, 'vwap_bid': None, 'vwap_ask': None,
+            'bids': [], 'asks': [], 'lastUpdateId': None
+        }
 
-# 2. WebSocket Real-Time Feed (Async)
 
-async def binance_ws_ticker(symbol: str = 'btcusdt', on_message=None):
+async def binance_ws_ticker(symbol: str = 'btcusdt', on_message=None): # type: ignore
     """Connects to Binance WebSocket for real-time ticker updates."""
+    import websockets
     url = f"wss://stream.binance.com:9443/ws/{symbol.lower()}@ticker"
     async with websockets.connect(url) as ws:
         async for message in ws:
@@ -97,28 +106,33 @@ async def binance_ws_ticker(symbol: str = 'btcusdt', on_message=None):
             else:
                 print(message)
 
-# 3. News & Sentiment (Stub)
 
 def get_crypto_news() -> List[Dict[str, Any]]:
     """Stub for fetching crypto news headlines (integrate with CryptoPanic, etc.)."""
-    # TODO: Integrate with real news/sentiment APIs
     return [
-        {"headline": "Bitcoin hits new high!", "source": "CryptoPanic", "timestamp": pd.Timestamp.now()}
+        {
+            "headline": "Bitcoin hits new high!",
+            "source": "CryptoPanic",
+            "timestamp": pd.Timestamp.now()
+        }
     ]
 
-# 4. On-Chain Data (Stub)
 
 def get_onchain_data(asset: str = 'BTC') -> Dict[str, Any]:
     """Stub for fetching on-chain analytics (integrate with Glassnode, etc.)."""
-    # TODO: Integrate with real on-chain data providers
-    return {"whale_alerts": 0, "large_transfers": 0, "timestamp": pd.Timestamp.now()}
+    return {
+        "whale_alerts": 0,
+        "large_transfers": 0,
+        "timestamp": pd.Timestamp.now()
+    }
 
-# 5. Technical Indicators (using pandas-ta if available)
+
 try:
-    import pandas_ta as ta
+    import pandas_ta as ta  # type: ignore
     has_ta = True
 except ImportError:
     has_ta = False
+
 
 def add_technical_indicators(df: pd.DataFrame) -> pd.DataFrame:
     """Adds common technical indicators to a DataFrame (SMA, RSI, MACD, etc.)."""
@@ -126,19 +140,23 @@ def add_technical_indicators(df: pd.DataFrame) -> pd.DataFrame:
         print("pandas-ta not installed. Skipping technical indicators.")
         return df
     df = df.copy()
-    df['sma_20'] = ta.sma(df['close'], length=20)
-    df['rsi_14'] = ta.rsi(df['close'], length=14)
-    macd = ta.macd(df['close'])
+    df['sma_20'] = ta.sma(df['close'], length=20) # type: ignore
+    df['rsi_14'] = ta.rsi(df['close'], length=14) # type: ignore
+    macd = ta.macd(df['close']) # type: ignore
     if macd is not None:
         df['macd'] = macd['MACD_12_26_9']
         df['macd_signal'] = macd['MACDs_12_26_9']
     return df
 
-# 6. Economic/Market Data (Stub)
+
 def get_macro_data() -> Dict[str, Any]:
     """Stub for macroeconomic indicators (integrate with FRED, etc.)."""
-    # TODO: Integrate with real macro data providers
-    return {"vix": None, "sp500": None, "timestamp": pd.Timestamp.now()}
+    return {
+        "vix": None,
+        "sp500": None,
+        "timestamp": pd.Timestamp.now()
+    }
+
 
 def get_market_data(symbol: str = 'BTCUSD', limit: int = 100) -> pd.DataFrame:
     """Fetches historical market data from Binance API (production-ready)."""
@@ -147,22 +165,22 @@ def get_market_data(symbol: str = 'BTCUSD', limit: int = 100) -> pd.DataFrame:
         response = requests.get(api_url, timeout=10)
         response.raise_for_status()
         data = response.json()
-        # Binance returns: [open_time, open, high, low, close, volume, ...]
         df = pd.DataFrame(data, columns=[
             'open_time', 'open', 'high', 'low', 'close', 'volume',
             'close_time', 'quote_asset_volume', 'number_of_trades',
             'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'ignore'
         ])
-        df['open_time'] = pd.to_datetime(df['open_time'], unit='ms')
-        df['close_time'] = pd.to_datetime(df['close_time'], unit='ms')
+        df['open_time'] = pd.to_datetime(df['open_time'], unit='ms') # type: ignore
+        df['close_time'] = pd.to_datetime(df['close_time'], unit='ms') # type: ignore
         for col in ['open', 'high', 'low', 'close', 'volume']:
-            df[col] = pd.to_numeric(df[col], errors='coerce')
-        df = df.set_index('open_time')
+            df[col] = pd.to_numeric(df[col], errors='coerce') # type: ignore
+        df = df.set_index('open_time') # type: ignore
         print(f"Fetched {len(df)} data points for {symbol}")
         return df
     except requests.exceptions.RequestException as e:
         print(f"Error fetching market data: {e}")
         return pd.DataFrame()
+
 
 def get_realtime_data(symbol: str = 'BTCUSD') -> Dict[str, Any]:
     """Fetches current real-time market data from Binance API (production-ready)."""
@@ -179,6 +197,7 @@ def get_realtime_data(symbol: str = 'BTCUSD') -> Dict[str, Any]:
     except Exception as e:
         print(f"Error fetching real-time data: {e}")
         return {'price': None, 'volume': None, 'timestamp': pd.Timestamp.now()}
+
 
 if __name__ == "__main__":
     # Example usage
@@ -199,11 +218,8 @@ if __name__ == "__main__":
     print("\nOrder Book Spread Sample:")
     print(order_book_spread)
 
-    order_book_metrics = get_order_book_metrics(symbol='BTCUSDT', limit=5)
-    print("\nOrder Book Metrics Sample:")
-    print(order_book_metrics)
-
     # Note: WebSocket example is not run here as it requires an async environment
+    # import asyncio
     # asyncio.run(binance_ws_ticker(symbol='btcusdt'))
 
     news = get_crypto_news()
