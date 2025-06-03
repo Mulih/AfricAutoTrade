@@ -135,7 +135,7 @@ AfricAutoTrade/
 
 ## License
 
-This project is for personal use. If you wish to use it commercially or redistribute, please contact the author.
+This project is proprietary. You must contact [your.email@example.com] for permission to use this software.
 
 ---
 
