@@ -29,28 +29,23 @@ def get_order_book(symbol: str = 'BTCUSDT',
 def get_order_book_spread(symbol: str = 'BTCUSDT',
                           limit: int = 10) -> Dict[str, Any]:
     """Fetches order book and computes spread and top-of-book liquidity."""
-    order_book = get_order_book(symbol, limit)
+    ord_b = get_order_book(symbol, limit)
     try:
-        best_bid = float(order_book['bids'][0][0]) \
-                            if order_book['bids'] else None
-        best_ask = float(order_book['asks'][0][0]) \
-                            if order_book['asks'] else None
-        spread = (best_ask - best_bid) if (
-            best_bid is not None and best_ask is not None
-        ) else None
-        bid_qty = float(order_book['bids'][0][1]) \
-                            if order_book['bids'] else None
-        ask_qty = float(order_book['asks'][0][1]) \
-                            if order_book['asks'] else None
+        b_bid = float(ord_b['bids'][0][0]) if ord_b['bids'] else None
+        b_ask = float(ord_b['asks'][0][0]) if ord_b['asks'] else None
+        spread = (b_ask - b_bid) if (b_bid is not None and b_ask is not None) \
+            else None
+        bid_qty = float(ord_b['bids'][0][1]) if ord_b['bids'] else None
+        ask_qty = float(ord_b['asks'][0][1]) if ord_b['asks'] else None
         return {
-            'best_bid': best_bid,
-            'best_ask': best_ask,
+            'best_bid': b_bid,
+            'best_ask': b_ask,
             'spread': spread,
             'bid_qty': bid_qty,
             'ask_qty': ask_qty,
-            'bids': order_book['bids'],
-            'asks': order_book['asks'],
-            'lastUpdateId': order_book['lastUpdateId']
+            'bids': ord_b['bids'],
+            'asks': ord_b['asks'],
+            'lastUpdateId': ord_b['lastUpdateId']
         }
     except Exception as e:
         print(f"Error computing order book spread: {e}")
@@ -71,17 +66,16 @@ def get_order_book_metrics(symbol: str = 'BTCUSDT',
     """
     ob = get_order_book(symbol, limit)
     try:
-        best_bid = float(ob['bids'][0][0]) if ob['bids'] else None
-        best_ask = float(ob['asks'][0][0]) if ob['asks'] else None
-        spread = (best_ask - best_bid) \
-                    if (best_bid is not None and best_ask is not None) \
-                    else None
+        b_bid = float(ob['bids'][0][0]) if ob['bids'] else None
+        b_ask = float(ob['asks'][0][0]) if ob['asks'] else None
+        spread = (b_ask - b_bid) if (b_bid is not None and b_ask is not None) \
+            else None
         bid_qty = float(ob['bids'][0][1]) if ob['bids'] else None
         ask_qty = float(ob['asks'][0][1]) if ob['asks'] else None
         total_bid_qty = sum(float(bid[1]) for bid in ob['bids']) \
-                            if ob['bids'] else 0.0
+            if ob['bids'] else 0.0
         total_ask_qty = sum(float(ask[1]) for ask in ob['asks']) \
-                            if ob['asks'] else 0.0
+            if ob['asks'] else 0.0
         imbalance = (
             (total_bid_qty - total_ask_qty) /
             (total_bid_qty + total_ask_qty)
@@ -98,8 +92,8 @@ def get_order_book_metrics(symbol: str = 'BTCUSDT',
         vwap_bid = vwap(ob['bids']) if ob['bids'] else None
         vwap_ask = vwap(ob['asks']) if ob['asks'] else None
         return {
-            'best_bid': best_bid,
-            'best_ask': best_ask,
+            'best_bid': b_bid,
+            'best_ask': b_ask,
             'spread': spread,
             'bid_qty': bid_qty,
             'ask_qty': ask_qty,
@@ -122,7 +116,7 @@ def get_order_book_metrics(symbol: str = 'BTCUSDT',
 
 
 async def binance_ws_ticker(symbol: str = 'btcusdt',
-                            on_message=None): # type: ignore
+                            on_message=None):  # type: ignore
     """Connects to Binance WebSocket for real-time ticker updates."""
     import websockets
     url = f"wss://stream.binance.com:9443/ws/{symbol.lower()}@ticker"
@@ -245,8 +239,7 @@ def get_realtime_data(symbol: str = 'BTCUSD') -> Dict[str, Any]:
     except Exception as e:
         print(f"Error fetching real-time data: {e}")
         return {'price': None, 'volume': None,
-                'timestamp': pd.Timestamp.now()
-               }
+                'timestamp': pd.Timestamp.now()}
 
 
 if __name__ == "__main__":

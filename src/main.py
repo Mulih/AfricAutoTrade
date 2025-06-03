@@ -48,8 +48,8 @@ def run_trading_bot(stop_event: Optional[threading.Event] = None):
         historical_data['signal'] = (historical_data['price_change']
                                      > 0).astype(int)
         X = historical_data[['price_change', 'volume_change']]
-        y = historical_data['signal'] # type: ignore
-        ai_model.train(X, y) # type: ignore
+        y = historical_data['signal']  # type: ignore
+        ai_model.train(X, y)  # type: ignore
         ai_model.save_model()
         monitor.log_event('info',
                           "Trained AI model on historical data "
@@ -72,8 +72,8 @@ def run_trading_bot(stop_event: Optional[threading.Event] = None):
     try:
         while True:
             if stop_event and stop_event.is_set():
-                monitor.log_event('info', "Stop event received. " \
-                "Exiting trading loop.")
+                monitor.log_event('info', "Stop event received. "
+                                  "Exiting trading loop.")
                 break
 
             monitor.log_event('info', "--- Starting new trading cycle ---")
@@ -83,7 +83,7 @@ def run_trading_bot(stop_event: Optional[threading.Event] = None):
             if not current_market_data or \
                     current_market_data.get('price') is None:
                 monitor.log_event('error',
-                                  "Failed to get current market. " \
+                                  "Failed to get current market. "
                                   "Skipping cycle.")
                 time.sleep(60)
                 continue
@@ -94,9 +94,9 @@ def run_trading_bot(stop_event: Optional[threading.Event] = None):
                  historical_data['close'].iloc[-1]) /  # type: ignore
                 historical_data['close'].iloc[-1]  # type: ignore
             )
-            volume_change = ( # type: ignore
+            volume_change = (  # type: ignore
                 (current_market_data.get('volume', 0) -
-                historical_data['volume'].iloc[-1]) /  # type: ignore
+                 historical_data['volume'].iloc[-1]) /  # type: ignore
                 historical_data['volume'].iloc[-1]  # type: ignore
             )
             ai_features = {'price_change': price_change,  # type: ignore
@@ -104,8 +104,8 @@ def run_trading_bot(stop_event: Optional[threading.Event] = None):
 
             # 3. AI Prediction
             ai_prediction = ai_model.predict(ai_features)  # type: ignore
-            monitor.log_event('info', f"AI predicted: {ai_prediction} \
-                              for market data: {current_market_data}")
+            monitor.log_event('info', f"AI predicted: {ai_prediction} "
+                              f"for market data: {current_market_data}")
 
             # 4. Trading Strategy Decision
             decision = strategy.make_decision(current_market_data,
@@ -136,8 +136,8 @@ def run_trading_bot(stop_event: Optional[threading.Event] = None):
             monitor.update_metrics(current_balance=current_balance)
             monitor.update_order_book_metrics(symbol='BTCUSDT', limit=10)
             monitor.log_event('info',
-                              f"Current Bot Metrics: \
-                                        {monitor.get_current_metrics()}")
+                              f"Current Bot Metrics: "
+                              f"{monitor.get_current_metrics()}")
 
             # 7. Pause before next cycle
             sleep_time = int(os.getenv('TRADING_CYCLE_INTERVAL_SECONDS', 300))
@@ -145,7 +145,7 @@ def run_trading_bot(stop_event: Optional[threading.Event] = None):
             for _ in range(sleep_time):
                 if stop_event and stop_event.is_set():
                     monitor.log_event('info',
-                                      "Stop event received during sleep. " \
+                                      "Stop event received during sleep. "
                                       "Exiting trading loop.")
                     break
                 time.sleep(1)

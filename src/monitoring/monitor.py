@@ -24,8 +24,8 @@ class TradingMonitor:
         except PermissionError:
             log_path = f"/tmp/{self.log_file}"
             print(
-                f"[Logging] Permission denied for {self.log_file}, \
-                                            using {log_path} instead."
+                f"[Logging] Permission denied for {self.log_file}, "
+                f"using {log_path} instead."
             )
             fh = logging.FileHandler(log_path)
         fh.setLevel(logging.INFO)

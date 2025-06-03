@@ -67,7 +67,7 @@ def get_settings() -> Dict[str, Any]:
         "api_key_set": bool(os.getenv('BINANCE_API_KEY')),
         "strategy": "default"
     }
-\
+
 
 @app.post("/settings")
 def update_settings(settings: Dict[str, Any]) -> Dict[str, Any]:

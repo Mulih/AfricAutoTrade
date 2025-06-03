@@ -21,23 +21,22 @@ class AIModel:
         self.is_trained = True  # Model is now trained
         print("AI model training complete.")
 
-    def predict(self, features: Dict[str, float],
+    def predict(self, feat: Dict[str, float],
                 symbol: str = 'BTCUSDT') -> int:
         """
         Makes a prediction based on input features
         and order book analytics."""
         if not self.is_trained:
-            raise Exception("Model is not trained yet. " \
-            "Please train the model before prediction.")
+            raise Exception("Model is not trained yet.  \
+                Please train the model before prediction.")
         # Optionally enrich features with order book metrics
-        ob_metrics = get_order_book_metrics(symbol)
-        features = {
-            **features,
-            'ob_spread': ob_metrics['spread'] or 0.0,  # Add order book spread
-            'ob_imbalance': ob_metrics['imbalance']
-                            or 0.0  # Add order book imbalance
+        ob_mets = get_order_book_metrics(symbol)
+        feat = {
+            **feat,
+            'ob_spread': (ob_mets['spread'] or 0.0),
+            'ob_imbalance': (ob_mets['imbalance'] or 0.0)
         }
-        X = pd.DataFrame([features])
+        X = pd.DataFrame([feat])
         X_scaled = self.scaler.transform(X)  # type: ignore
         prediction = self.model.predict(X_scaled)  # type: ignore
         return int(prediction[0])  # Return the single prediction
@@ -66,7 +65,7 @@ if __name__ == "__main__":
     # Example: Simple dummy data for demonstration
     # Features: price_change (e.g., % change), volume_change
     # Target: 'buy' (1) or 'sell' (0)
-    data = { # type: ignore
+    data = {  # type: ignore
         'price_change': [0.01, -0.005, 0.02, -0.01,
                          0.008, 0.03, -0.015, 0.002],
         'volume_change': [0.1, -0.05, 0.2, -0.1, 0.08, 0.3, -0.15, 0.02],
@@ -78,7 +77,7 @@ if __name__ == "__main__":
     y = df['signal'].astype(int)
 
     ai_model = AIModel()
-    ai_model.train(X, y) # type: ignore
+    ai_model.train(X, y)  # type: ignore
 
     # Make a prediction
     sample_features = {'price_change': 0.007, 'volume_change': 0.07}

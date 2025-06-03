@@ -9,20 +9,24 @@ from dotenv import load_dotenv
 try:
     from binance.client import Client as BinanceClient  # type: ignore
     from binance.enums import (SIDE_BUY,  # type: ignore
-                                SIDE_SELL, ORDER_TYPE_LIMIT,
-                                TIME_IN_FORCE_GTC, ORDER_TYPE_MARKET
-                              )
+                               SIDE_SELL, ORDER_TYPE_LIMIT,
+                               TIME_IN_FORCE_GTC, ORDER_TYPE_MARKET
+                               )
     from binance.exceptions import (BinanceAPIException,  # type: ignore
                                     BinanceRequestException)
 except ImportError:
-    print("Warning: 'python-binance' library not found. " \
-            "Live trading functionality will be simulated.")
+    print("Warning: 'python-binance' library not found."
+          "Live trading functionality will be simulated.")
     BinanceClient = None
-    SIDE_BUY = SIDE_SELL = ORDER_TYPE_LIMIT =  # type: ignore
-                TIME_IN_FORCE_GTC = ORDER_TYPE_MARKET = None  # type: ignore
+    SIDE_BUY = None  # type: ignore
+    SIDE_SELL = None  # type: ignore
+    ORDER_TYPE_LIMIT = None  # type: ignore
+    TIME_IN_FORCE_GTC = None  # type: ignore
+    ORDER_TYPE_MARKET = None  # type: ignore
     BinanceAPIException = BinanceRequestException = Exception  # type: ignore
 
 load_dotenv()  # Load environment variables from .env file
+
 
 class TradeExecutor:
     def __init__(self, api_key: str, api_secret: str,
@@ -45,8 +49,11 @@ class TradeExecutor:
         self.logger.setLevel(logging.INFO)
         if not self.logger.hasHandlers():
             ch = logging.StreamHandler()
-            ch.setFormatter(logging.Formatter('%(asctime)s - %(name)s - '
-                                               '%(levelname)s - %(message)s'))
+            ch.setFormatter(
+                logging.Formatter(
+                    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+                )
+            )
             self.logger.addHandler(ch)
         self.logger.info(f"TradeExecutor initialized in {self.mode} mode.")
         if self.mode == 'live':
@@ -64,13 +71,13 @@ class TradeExecutor:
                         f"Could not connect to Binance API in live mode: {e}"
                     )
                     self.logger.warning(
-                        "Falling back to paper trading mode " \
+                        "Falling back to paper trading mode "
                         "due to API connection failure."
                     )
                     self.mode = 'paper'
             else:
                 self.logger.error(
-                    "Binance client not available. " \
+                    "Binance client not available. "
                     "Live trading functionality cannot be used."
                 )
                 self.logger.warning("Falling back to paper trading mode.")
@@ -132,8 +139,10 @@ class TradeExecutor:
         else:
             status = 'failed'
             message = f"[PAPER TRADE] Invalid order type: {order_type}"
-        self.logger.info(message) if status == 'success' \
-                                  else self.logger.warning(message)
+        if status == 'success':
+            self.logger.info(message)
+        else:
+            self.logger.warning(message)
         return {
             'status': status,
             'order_id': f"sim_order_{os.urandom(4).hex()}",
@@ -168,40 +177,47 @@ class TradeExecutor:
                                         quantity, mock_price)
         elif self.mode == 'live':
             if not self.broker_client:
-                self.logger.error("Live trading client not initialized. " \
-                                    "Falling back to paper mode.")
+                self.logger.error("Live trading client not initialized. "
+                                  "Falling back to paper mode.")
                 return self._simulate_trade(symbol, order_type,
                                             quantity, price or 65000.0)
             try:
-                order_params: Dict[str, Any] = {
+                ord_prms: Dict[str, Any] = {
                     'symbol': symbol,
                     'side': SIDE_BUY if order_type == 'buy'
-                                     else SIDE_SELL,  # type: ignore
+                    else SIDE_SELL,  # type: ignore
                     'quantity': quantity
                 }
                 if price is not None:
-                    order_params['type'] = ORDER_TYPE_LIMIT  # type: ignore
-                    order_params['price'] = f"{price:.2f}"
-                    order_params['timeInForce'] =
-                                            TIME_IN_FORCE_GTC  # type: ignore
-                    self.logger.info(f"Placing LIVE LIMIT {order_type.upper()} \
-                                     order for {quantity} {symbol}...")
-                    order = self.broker_client.create_order(**order_params)
+                    ord_prms['type'] = ORDER_TYPE_LIMIT  # type: ignore
+                    ord_prms['price'] = f"{price:.2f}"
+                    ord_prms['timeInForce'] = TIME_IN_FORCE_GTC  # type: ignore
+                    self.logger.info(
+                        f"Placing LIVE LIMIT {order_type.upper()} order "
+                        f"for {quantity} {symbol}..."
+                    )
+                    order = self.broker_client.create_order(**ord_prms)
                 else:
-                    order_params['type'] = ORDER_TYPE_MARKET  # type: ignore
-                    self.logger.info(f"Placing LIVE MARKET {order_type.upper()} \
-                                     order for {quantity} {symbol}...")
-                    order = self.broker_client.create_order(**order_params)
-                self.logger.info(f"LIVE TRADE: Order {order['orderId']} placed \
-                                 Status: {order['status']}")
+                    ord_prms['type'] = ORDER_TYPE_MARKET  # type: ignore
+                    self.logger.info(
+                        f"Placing LIVE MARKET {order_type.upper()} order "
+                        f"for {quantity} {symbol}..."
+                    )
+                    order = self.broker_client.create_order(**ord_prms)
+                self.logger.info(
+                    f"LIVE TRADE: Order {order['orderId']} placed "
+                    f"Status: {order['status']}"
+                )
                 if order['type'] == 'MARKET' and order['status'] == 'NEW':
                     time.sleep(2)
-                    filled_order = self.broker_client.get_order(symbol=symbol,
-                                                    orderId=order['orderId'])
-                    filled_price: float = float(filled_order['fills'][0]
-                                                ['price']) \
-                                                if filled_order['fills'] \
-                                                else 0.0
+                    filled_order = self.broker_client.get_order(
+                        symbol=symbol,
+                        orderId=order['orderId']
+                    )
+                    filled_price: float = (
+                        float(filled_order['fills'][0]['price'])
+                        if filled_order['fills'] else 0.0
+                    )
                     self.logger.info(f"LIVE TRADE: Market order \
                                      {order['orderId']} filled at approx. \
                                      {filled_price:.2f}")
@@ -212,8 +228,10 @@ class TradeExecutor:
                         'type': order_type,
                         'quantity': float(order['executedQty']),
                         'price': filled_price,
-                        'timestamp': pd.to_datetime(order['updateTime'],  # type: ignore
-                                                    unit='ms').isoformat(),
+                        'timestamp': pd.to_datetime(  # type: ignore
+                            order['updateTime'],
+                            unit='ms'
+                        ).isoformat(),
                         'raw_response': filled_order
                     }
                 else:
@@ -224,8 +242,10 @@ class TradeExecutor:
                         'type': order_type,
                         'quantity': float(order['origQty']),
                         'price': float(order.get('price', '0.0')),
-                        'timestamp': pd.to_datetime(order['transactTime'],  # type: ignore
-                                                     unit='ms').isoformat(),
+                        'timestamp': pd.to_datetime(  # type: ignore
+                            order['transactTime'],
+                            unit='ms'
+                        ).isoformat(),
                         'raw_response': order
                     }
             except Exception as e:
