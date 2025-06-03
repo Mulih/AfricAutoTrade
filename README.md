@@ -1,7 +1,6 @@
 # AfricAutoTrade: Automated Crypto Trading Bot
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/Mulih/AfricAutoTrade/ci.yml?branch=main&label=build)](https://github.com/Mulih/AfricAutoTrade/actions)
-[![License](https://img.shields.io/github/license/Mulih/AfricAutoTrade)](https://github.com/Mulih/AfricAutoTrade/blob/main/LICENSE)
 [![Docker Pulls](https://img.shields.io/docker/pulls/mulih/africautotrade?label=Docker%20Pulls)](https://hub.docker.com/r/mulih/africautotrade)
 [![GitHub stars](https://img.shields.io/github/stars/Mulih/AfricAutoTrade?style=social)](https://github.com/Mulih/AfricAutoTrade)
 
@@ -135,7 +134,12 @@ AfricAutoTrade/
 
 ## License
 
-This project is for personal use. If you wish to use it commercially or redistribute, please contact the author.
+This project is proprietary and all rights are reserved.
+You are not permitted to use, copy, modify, merge, publish, distribute, sublicense, or sell any part of this software or its source code, in whole or in part, without the express prior written permission of the copyright holder.
+
+For licensing inquiries, please see the LICENSE file or contact: mulikyalo1@gmail.com.
+
+Any unauthorized use of this software is strictly prohibited.
 
 ---
 
