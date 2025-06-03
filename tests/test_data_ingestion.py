@@ -1,8 +1,8 @@
-import pandas as pd
 from src.data_ingestion import (
     get_market_data, get_realtime_data, get_order_book,
     get_order_book_metrics, get_crypto_news, get_onchain_data
 )
+import pandas as pd
 
 
 def test_get_market_data():

@@ -23,12 +23,11 @@ def test_make_decision_sell():
 
 def test_evaluate_performance():
     strategy = TradingStrategy(ai_model=None)
-    from typing import List, Dict, Any
-    trades: List[Dict[str, Any]] = [
+    trades = [  # type: ignore
         {'type': 'buy', 'entry_price': 100, 'exit_price': 110, 'quantity': 1},
         {'type': 'sell', 'entry_price': 200, 'exit_price': 190, 'quantity': 1},
         {'type': 'buy', 'entry_price': 150, 'exit_price': 140, 'quantity': 1},
     ]
-    perf = strategy.evaluate_performance(trades)
+    perf = strategy.evaluate_performance(trades)  # type: ignore
     assert 'profit' in perf
     assert 'win_rate' in perf
