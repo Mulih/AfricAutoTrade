@@ -137,7 +137,7 @@ AfricAutoTrade/
 This project is proprietary and all rights are reserved.
 You are not permitted to use, copy, modify, merge, publish, distribute, sublicense, or sell any part of this software or its source code, in whole or in part, without the express prior written permission of the copyright holder.
 
-For licensing inquiries, please see the LICENSE file or contact: mulikyalo1@gmail.com.
+For licensing inquiries, please see the LICENSE file or contact: mailto:mulikyalo1@gmail.com.
 
 Any unauthorized use of this software is strictly prohibited.
 
